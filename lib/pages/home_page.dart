@@ -151,14 +151,14 @@ class _HomePage extends State<HomePage> {
       //     );
       //   },
       // ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/contact');
-        },
-        tooltip: 'Contacts',
-        backgroundColor: MyColors.secondaryColor,
-        child: const Icon(Icons.message_rounded),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     Navigator.pushNamed(context, '/contact');
+      //   },
+      //   tooltip: 'Contacts',
+      //   backgroundColor: MyColors.secondaryColor,
+      //   child: const Icon(Icons.message_rounded),
+      // ),
     );
   }
 }

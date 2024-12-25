@@ -31,13 +31,34 @@ class _SigninPageState extends State<SigninPage> {
 
   void login() async {
     final dbHelper = DatabaseHelper();
-    final isUserValid = await dbHelper.verifyUser(_loginController.text.trim(), _passwordController.text.trim());
+    final isUserValid = await dbHelper.verifyUser(
+        _loginController.text.trim(), _passwordController.text.trim());
 
     if (isUserValid) {
       Navigator.pushNamedAndRemoveUntil(
-          context, '/home', (Route<dynamic> route) => false);
+          context, '/main', (Route<dynamic> route) => false);
     } else {
-      print("Numéro de téléphone ou mot de passe incorrect.");
+      String nature = int.tryParse(_loginController.text) != null
+          ? "Numéro de téléphone"
+          : "Email";
+      String message = "$nature ou mot de passe incorrect.";
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          icon: const Icon(Icons.warning_amber_sharp, color: Colors.red),
+          title: const Text("Échec de connexion"),
+          content: Text(
+            message,
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Ok"),
+            ),
+          ],
+        ),
+      );
     }
 
     _loginController.clear();
@@ -70,8 +91,15 @@ class _SigninPageState extends State<SigninPage> {
                   key: _formKey,
                   child: Column(
                     children: [
-                      createField(context, 'Téléphone / Email', '', false,
-                          _loginController, TextInputType.emailAddress, 0, null),
+                      createField(
+                          context,
+                          'Téléphone / Email',
+                          '',
+                          false,
+                          _loginController,
+                          TextInputType.emailAddress,
+                          0,
+                          null),
                       createField(
                           context,
                           'Mot de passe',

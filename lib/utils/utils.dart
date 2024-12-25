@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_sound/flutter_sound.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 /* Prise de photos */
@@ -113,4 +114,11 @@ Padding createField(
       keyboardType: inputType,
     ),
   );
+}
+
+void lienExterne(String link) async {
+  final Uri url = Uri.parse(link);
+  if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+    throw 'Could not launch $url';
+  }
 }

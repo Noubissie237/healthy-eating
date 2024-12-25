@@ -130,7 +130,7 @@ class _SignupPageState extends State<SignupPage> {
                                   ),
                                   'successful registration  !');
                               Navigator.pushNamedAndRemoveUntil(context,
-                                  '/home', (Route<dynamic> route) => false);
+                                  '/main', (Route<dynamic> route) => false);
                             }
                           },
                           style: ElevatedButton.styleFrom(
