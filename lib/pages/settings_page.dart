@@ -150,8 +150,6 @@ class SettingsPage extends StatelessWidget {
       final Map<String, dynamic> decodedToken = jsonDecode(token);
       userInfo = {
         'fullname': decodedToken['fullname'] ?? 'Unknown',
-        'prenom': decodedToken['prenom'] ?? 'Unknown',
-        'telephone': decodedToken['telephone'] ?? 'Unknown',
         'email': decodedToken['email'] ?? 'Unknown',
         'height': decodedToken['height']?.toString() ?? 'Unknown',
         'weight': decodedToken['weight']?.toString() ?? 'Unknown',

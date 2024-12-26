@@ -146,4 +146,14 @@ class DatabaseHelper {
     );
     return maps.isNotEmpty;
   }
+
+  Future<void> updatePassword(String email, String newPassword) async {
+    final db = await database;
+    await db!.update(
+      'users',
+      {'password': newPassword},
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+  }
 }

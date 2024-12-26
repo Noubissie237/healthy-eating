@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:food_app/database/database_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SecurityPage extends StatefulWidget {
   const SecurityPage({super.key});
@@ -25,19 +29,54 @@ class _SecurityPageState extends State<SecurityPage> {
     super.dispose();
   }
 
+  Future<Map<String, String>> _getUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('user_token');
+
+    Map<String, String> userInfo = {};
+    if (token != null) {
+      final Map<String, dynamic> decodedToken = jsonDecode(token);
+      userInfo = {
+        'email': decodedToken['email'] ?? 'Unknown',
+      };
+    }
+    return userInfo;
+  }
+
   Future<void> _updatePassword() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
       try {
-        // Implémentez ici la logique de mise à jour du password
-        await Future.delayed(
-            const Duration(seconds: 2)); // Simuler une requête API
+        final userInfo = await _getUserInfo();
+        final email = userInfo['email'];
+
+        if (email == null) {
+          throw Exception('User email not found');
+        }
+
+        final dbHelper = DatabaseHelper();
+
+        // Vérifier l'ancien mot de passe
+        final isValidPassword = await dbHelper.verifyUser(
+          email,
+          _oldPasswordController.text,
+        );
+
+        if (!isValidPassword) {
+          throw Exception('Incorrect old password');
+        }
+
+        // Mettre à jour le mot de passe
+        await dbHelper.updatePassword(
+          email,
+          _newPasswordController.text,
+        );
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Password update successfuly'),
+              content: Text('Password updated successfully'),
               backgroundColor: Colors.green,
             ),
           );
@@ -47,7 +86,7 @@ class _SecurityPageState extends State<SecurityPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: ${e.toString()}'),
+              content: Text(e.toString()),
               backgroundColor: Colors.red,
             ),
           );
@@ -79,8 +118,10 @@ class _SecurityPageState extends State<SecurityPage> {
             ),
             const SizedBox(height: 24),
             TextFormField(
+              maxLength: 4,
               controller: _oldPasswordController,
               obscureText: _obscureOldPassword,
+              keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: 'Old password',
                 border: OutlineInputBorder(
@@ -104,7 +145,9 @@ class _SecurityPageState extends State<SecurityPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _newPasswordController,
+              keyboardType: TextInputType.number,
               obscureText: _obscureNewPassword,
+              maxLength: 4,
               decoration: InputDecoration(
                 labelText: 'New password',
                 border: OutlineInputBorder(
@@ -130,8 +173,10 @@ class _SecurityPageState extends State<SecurityPage> {
             ),
             const SizedBox(height: 16),
             TextFormField(
+              maxLength: 4,
               controller: _confirmPasswordController,
               obscureText: _obscureConfirmPassword,
+              keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: 'Confirm password',
                 border: OutlineInputBorder(
