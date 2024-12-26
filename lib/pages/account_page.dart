@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:food_app/colors/my_colors.dart';
 import 'package:food_app/database/database_helper.dart';
+import 'package:food_app/utils/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -118,18 +120,37 @@ class _AccountPageState extends State<AccountPage> {
                     ),
                   ),
                   const SizedBox(height: 20),
+                  buildInfoTile(context, "Fullname",
+                      userInfo["fullname"] ?? "Unknown", false, onTap: () {
+                    downMessage(
+                        context,
+                        const Icon(
+                          Icons.warning_amber_outlined,
+                          color: MyColors.orange,
+                        ),
+                        'You can\'t update this field  !');
+                  }),
                   buildInfoTile(
-                      context, "fullname", userInfo["fullname"] ?? "Unknown"),
-                  buildInfoTile(
-                      context, "Email", userInfo["email"] ?? "Unknown"),
-                  buildInfoTile(
-                      context, "height (cm)", userInfo["height"] ?? "Unknown",
+                      context, "Email", userInfo["email"] ?? "Unknown", false,
                       onTap: () {
+                    downMessage(
+                        context,
+                        const Icon(
+                          Icons.warning_amber_outlined,
+                          color: MyColors.orange,
+                        ),
+                        'You can\'t update this field  !');
+                  }),
+                  buildInfoTile(context, "Height (cm)",
+                      userInfo["height"] ?? "Unknown", true, onTap: () {
                     _showHeightDialog(
                         context, userInfo["height"], userInfo["email"]);
                   }),
-                  buildInfoTile(
-                      context, "weight (Kg)", userInfo["weight"] ?? "Unknown"),
+                  buildInfoTile(context, "Weight (Kg)",
+                      userInfo["weight"] ?? "Unknown", true, onTap: () {
+                    _showWeightDialog(
+                        context, userInfo['weight'], userInfo["email"]);
+                  }),
                 ],
               ),
             ),
@@ -139,7 +160,8 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
-  Widget buildInfoTile(BuildContext context, String title, String value,
+  Widget buildInfoTile(
+      BuildContext context, String title, String value, bool updatable,
       {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
@@ -161,11 +183,13 @@ class _AccountPageState extends State<AccountPage> {
                 color: Colors.black,
               ),
             ),
-            trailing: Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.grey[400],
-              size: 18,
-            ),
+            trailing: updatable
+                ? Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.grey[400],
+                    size: 18,
+                  )
+                : null,
           ),
           Divider(color: Colors.grey[300]),
         ],
@@ -224,6 +248,68 @@ class _AccountPageState extends State<AccountPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                         content: Text("Please enter a valid height")),
+                  );
+                }
+              },
+              child: const Text("Update"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showWeightDialog(
+      BuildContext context, String? currentWeight, String? email) {
+    final TextEditingController weightController = TextEditingController();
+    if (currentWeight != null && currentWeight != "Unknown") {
+      weightController.text = currentWeight;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Update Weight"),
+          content: TextField(
+            controller: weightController,
+            keyboardType: TextInputType.number,
+            decoration:
+                const InputDecoration(labelText: "Enter new weight (kg)"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async {
+                final newWeight = double.tryParse(weightController.text);
+                if (newWeight != null && email != null) {
+                  final dbHelper = DatabaseHelper();
+                  await dbHelper.updateWeight(email, newWeight);
+
+                  final prefs = await SharedPreferences.getInstance();
+                  final token = prefs.getString('user_token');
+
+                  if (token != null) {
+                    final Map<String, dynamic> decodedToken = jsonDecode(token);
+                    decodedToken['weight'] = newWeight;
+                    await prefs.setString(
+                        'user_token', jsonEncode(decodedToken));
+                  }
+
+                  setState(() {
+                    _userInfoFuture = _getUserInfo();
+                  });
+
+                  Navigator.of(context).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text("Please enter a valid weight")),
                   );
                 }
               },

@@ -1,5 +1,3 @@
-//import 'dart:io';
-
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -27,28 +25,55 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   void _submitForm() async {
-    _formKey.currentState!.save();
-    Users user = Users(
-        fullname: _fullnameController.text,
-        email: _emailController.text,
-        password: _passwordController.text);
+    if (_formKey.currentState!.validate()) {
+      String email = _emailController.text.trim();
 
-    await _databaseHelper.insertStudent(user);
+      bool emailExists = await _databaseHelper.doesEmailExist(email);
+      if (emailExists) {
+        downMessage(
+          context,
+          const Icon(
+            Icons.error,
+            color: Colors.red,
+          ),
+          'This email already exist !',
+        );
+        return;
+      } else {
+        Users user = Users(
+          fullname: _fullnameController.text.toString().trim().toUpperCase(),
+          email: email,
+          password: _passwordController.text,
+        );
 
-    final prefs = await SharedPreferences.getInstance();
+        await _databaseHelper.insertStudent(user);
 
-    final userToken = jsonEncode({
-      "fullname": _fullnameController.text,
-      "email": _emailController.text,
-      "height": null,
-      "weight": null
-    });
+        final prefs = await SharedPreferences.getInstance();
+        final userToken = jsonEncode({
+          "fullname": _fullnameController.text.toString().trim().toUpperCase(),
+          "email": email,
+          "height": null,
+          "weight": null,
+        });
 
-    await prefs.setString("user_token", userToken);
+        await prefs.setString("user_token", userToken);
 
-    _fullnameController.clear();
-    _emailController.clear();
-    _passwordController.clear();
+        _fullnameController.clear();
+        _emailController.clear();
+        _passwordController.clear();
+
+        downMessage(
+            context,
+            const Icon(
+              Icons.check_circle_outline,
+              color: MyColors.success,
+            ),
+            'successful registration  !');
+
+        Navigator.pushNamedAndRemoveUntil(
+            context, '/main', (Route<dynamic> route) => false);
+      }
+    }
   }
 
   @override
@@ -67,15 +92,6 @@ class _SignupPageState extends State<SignupPage> {
   void unFocusMethod() {
     FocusScope.of(context).unfocus();
   }
-
-  // void _handlePickImage() async {
-  //   File? image = await pickImage();
-  //   if (image != null) {
-  //     setState(() {
-  //       _imageController.text = image.path;
-  //     });
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -101,8 +117,15 @@ class _SignupPageState extends State<SignupPage> {
                   key: _formKey,
                   child: Column(
                     children: [
-                      createField(context, 'fullname', 'Enter your fullname', false,
-                          _fullnameController, TextInputType.name, 3, null),
+                      createField(
+                          context,
+                          'fullname',
+                          'Enter your fullname',
+                          false,
+                          _fullnameController,
+                          TextInputType.name,
+                          3,
+                          null),
                       createField(
                           context,
                           'Email',
@@ -119,15 +142,6 @@ class _SignupPageState extends State<SignupPage> {
                             unFocusMethod();
                             if (_formKey.currentState!.validate()) {
                               _submitForm();
-                              downMessage(
-                                  context,
-                                  const Icon(
-                                    Icons.check_circle_outline,
-                                    color: MyColors.success,
-                                  ),
-                                  'successful registration  !');
-                              Navigator.pushNamedAndRemoveUntil(context,
-                                  '/main', (Route<dynamic> route) => false);
                             }
                           },
                           style: ElevatedButton.styleFrom(

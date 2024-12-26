@@ -30,7 +30,7 @@ class DatabaseHelper {
       CREATE TABLE users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         fullname TEXT,
-        email TEXT,
+        email TEXT UNIQUE,
         password TEXT,
         height REAL,
         weight REAL
@@ -43,7 +43,7 @@ class DatabaseHelper {
     await db!.insert(
       'users',
       users.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: ConflictAlgorithm.ignore,
     );
   }
 
@@ -113,6 +113,16 @@ class DatabaseHelper {
     );
   }
 
+  Future<void> updateWeight(String email, double newWeight) async {
+    final db = await database;
+    await db!.update(
+      'users',
+      {'weight': newWeight},
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+  }
+
   Future<Map<String, dynamic>?> getUserByEmail(String email) async {
     final db = await database;
     final List<Map<String, dynamic>> result = await db!.query(
@@ -125,5 +135,15 @@ class DatabaseHelper {
       return result.first;
     }
     return null;
+  }
+
+  Future<bool> doesEmailExist(String email) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db!.query(
+      'users',
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+    return maps.isNotEmpty;
   }
 }
