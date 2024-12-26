@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:food_app/pages/account_page.dart';
+import 'package:food_app/pages/chat_page.dart';
 import 'package:food_app/pages/contact_page.dart';
+import 'package:food_app/pages/conversation_page.dart';
 import 'package:food_app/pages/onboarding_screen.dart';
 import 'package:food_app/pages/recordings_page.dart';
 import 'package:food_app/pages/security_page.dart';
@@ -45,6 +47,8 @@ class MyApp extends StatelessWidget {
         '/contact': (context) => const ContactPage(),
         '/account': (context) => const AccountPage(),
         '/security': (context) => const SecurityPage(),
+        '/chat': (context) => ChatPage(),
+        '/conversation': (context) => ConversationPage(contactName: 'Je suis', avatarUrl: 'Tu es',),
       },
     );
   }
@@ -62,7 +66,7 @@ class _MainPageState extends State<MainPage> {
 
   final List<Widget> _pages = [
     const HomePage(),
-    const Center(child: Text('Chat')),
+    ChatPage(),
     const Center(child: Text('Save')),
     const Center(child: Text('Operations')),
     const SettingsPage(),
