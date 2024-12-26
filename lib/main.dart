@@ -3,6 +3,7 @@ import 'package:food_app/pages/account_page.dart';
 import 'package:food_app/pages/contact_page.dart';
 import 'package:food_app/pages/onboarding_screen.dart';
 import 'package:food_app/pages/recordings_page.dart';
+import 'package:food_app/pages/security_page.dart';
 import 'package:food_app/pages/settings_page.dart';
 import 'package:food_app/pages/signin_page.dart';
 import 'package:food_app/pages/signup_page.dart';
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
         '/signin': (context) => const SigninPage(),
         '/contact': (context) => const ContactPage(),
         '/account': (context) => const AccountPage(),
+        '/security': (context) => const SecurityPage(),
       },
     );
   }

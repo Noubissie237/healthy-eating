@@ -115,7 +115,9 @@ class SettingsPage extends StatelessWidget {
                   SettingsSection(
                     title: 'Security',
                     icon: Icons.security,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.pushNamed(context, '/security');
+                    },
                   ),
                   Divider(),
                   SettingsSection(
