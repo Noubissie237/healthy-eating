@@ -16,20 +16,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<Widget> pages = [
     OnboardingPage(
-      title: 'Bienvenue,',
-      description: 'Suivez vos repas et améliorez votre santé !',
+      title: 'Welcome,',
+      description: 'Track your meals and improve your health!',
       backgroundColor: MyColors.blue,
     ),
     OnboardingPage(
-      title: 'Suivi de vos repas',
+      title: 'Track your meals',
       description:
-          'Enregistrez facilement chaque repas que vous consommez, en ajoutant des détails comme les ingrédients, les portions et les calories. Visualisez vos habitudes alimentaires et faites des choix plus sains au quotidien.',
+          'Easily record every meal you eat, adding details like ingredients, servings and calories. Visualize your eating habits and make healthier choices every day.',
       backgroundColor: MyColors.green,
     ),
     OnboardingPage(
-      title: 'Calcul de votre IMC',
+      title: 'Calcul your BMI',
       description:
-          'Calculez votre indice de masse corporelle (IMC) en entrant votre poids et votre taille. Suivez votre progrès et obtenez des recommandations personnalisées pour atteindre vos objectifs de santé et de bien-être.',
+          'Calculate your body mass index (BMI) by entering your weight and height. Track your progress and get personalized recommendations to achieve your health and wellness goals.',
       backgroundColor: MyColors.orange,
     ),
   ];
@@ -82,7 +82,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       context, '/signup', (Route<dynamic> route) => false);
                 },
                 child: Text(
-                  "commencer",
+                  "Let's get started!",
                   style: TextStyle(
                       fontSize: MediaQuery.of(context).size.width * 0.045,
                       color: MyColors.backgroundColor),

@@ -29,13 +29,11 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nom TEXT,
-        prenom TEXT,
+        fullname TEXT,
         email TEXT,
-        telephone TEXT,
         password TEXT,
-        taille REAL,
-        poids REAL
+        height REAL,
+        weight REAL
       )
       ''');
   }
@@ -56,13 +54,11 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) {
       return Users(
           id: maps[i]['id'],
-          nom: maps[i]['nom'],
-          prenom: maps[i]['prenom'],
-          telephone: maps[i]['telephone'],
+          fullname: maps[i]['fullname'],
           email: maps[i]['email'],
           password: maps[i]['password'],
-          taille: maps[i]['taille'],
-          poids: maps[i]['poids']);
+          height: maps[i]['height'],
+          weight: maps[i]['weight']);
     });
   }
 
@@ -72,60 +68,35 @@ class DatabaseHelper {
     return result.isEmpty;
   }
 
-  Future<bool> verifyUser(String login, String password) async {
+  Future<bool> verifyUser(String email, String password) async {
     final db = await database;
-    final List<Map<String, dynamic>> result1 = await db!.query(
-      'users',
-      where: 'telephone = ? AND password = ?',
-      whereArgs: [login, password],
-    );
-    final List<Map<String, dynamic>> result2 = await db.query(
+
+    final List<Map<String, dynamic>> result = await db!.query(
       'users',
       where: 'email = ? AND password = ?',
-      whereArgs: [login, password],
+      whereArgs: [email, password],
     );
 
-    return result1.isNotEmpty || result2.isNotEmpty;
+    return result.isNotEmpty;
   }
 
-  Future<Users?> getUserByLogin(String login, String password) async {
+  Future<Users?> getUserByLogin(String email, String password) async {
     final db = await database;
 
-    // Vérifier d'abord par téléphone
-    final List<Map<String, dynamic>> result1 = await db!.query(
-      'users',
-      where: 'telephone = ? AND password = ?',
-      whereArgs: [login, password],
-    );
-
-    // Puis par email
-    final List<Map<String, dynamic>> result2 = await db.query(
+    final List<Map<String, dynamic>> result = await db!.query(
       'users',
       where: 'email = ? AND password = ?',
-      whereArgs: [login, password],
+      whereArgs: [email, password],
     );
 
-    if (result1.isNotEmpty) {
+    if (result.isNotEmpty) {
       return Users(
-        id: result1[0]['id'],
-        nom: result1[0]['nom'],
-        prenom: result1[0]['prenom'],
-        telephone: result1[0]['telephone'],
-        email: result1[0]['email'],
-        password: result1[0]['password'],
-        taille: result1[0]['taille'],
-        poids: result1[0]['poids'],
-      );
-    } else if (result2.isNotEmpty) {
-      return Users(
-        id: result2[0]['id'],
-        nom: result2[0]['nom'],
-        prenom: result2[0]['prenom'],
-        telephone: result2[0]['telephone'],
-        email: result2[0]['email'],
-        password: result2[0]['password'],
-        taille: result2[0]['taille'],
-        poids: result2[0]['poids'],
+        id: result[0]['id'],
+        fullname: result[0]['fullname'],
+        email: result[0]['email'],
+        password: result[0]['password'],
+        height: result[0]['height'],
+        weight: result[0]['weight'],
       );
     }
 

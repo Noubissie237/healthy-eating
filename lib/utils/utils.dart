@@ -97,9 +97,9 @@ Padding createField(
       maxLength: maxLength,
       validator: (value) {
         if (value == null || value.toString().trim().isEmpty) {
-          return 'Veuillez entrer votre $label';
+          return 'Please enter your $label';
         } else if (value.toString().trim().length < minLength) {
-          return 'Minimum $minLength requis !';
+          return 'Minimum $minLength required !';
         }
         return null;
       },

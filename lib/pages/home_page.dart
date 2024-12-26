@@ -136,7 +136,7 @@ class _HomePage extends State<HomePage> {
       //                   ),
       //                   const SizedBox(height: 8),
       //                   Text(
-      //                     user.nom,
+      //                     user.fullname,
       //                     style: const TextStyle(
       //                       fontSize: 16,
       //                       fontWeight: FontWeight.w500,

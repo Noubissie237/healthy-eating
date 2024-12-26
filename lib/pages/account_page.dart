@@ -1,63 +1,98 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class AccountPage extends StatelessWidget {
-  final Map<String, String> userInfo;
-
-  const AccountPage({super.key, required this.userInfo});
+  const AccountPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Informations Personnelles"),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Center(
-                child: Stack(
+    return FutureBuilder<Map<String, String>>(
+        future: _getUserInfo(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text("Data loading error"));
+          }
+
+          final userInfo = snapshot.data!;
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text("Personal Information"),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+            body: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const CircleAvatar(
-                      radius: 60,
-                      backgroundImage: AssetImage('assets/images/user.webp'),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: CircleAvatar(
-                        backgroundColor: Colors.blue,
-                        radius: 18,
-                        child: const Icon(
-                          Icons.camera_alt,
-                          color: Colors.white,
-                          size: 18,
-                        ),
+                    Center(
+                      child: Stack(
+                        children: [
+                          const CircleAvatar(
+                            radius: 60,
+                            backgroundImage:
+                                AssetImage('assets/images/user.webp'),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: CircleAvatar(
+                              backgroundColor: Colors.blue,
+                              radius: 18,
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    const SizedBox(height: 20),
+                    buildInfoTile(
+                        context, "fullname", userInfo["fullname"] ?? "Unknown"),
+                    buildInfoTile(
+                        context, "Email", userInfo["email"] ?? "Unknown"),
+                    buildInfoTile(context, "height (cm)",
+                        userInfo["height"] ?? "Unknown"),
+                    buildInfoTile(context, "weight (Kg)",
+                        userInfo["weight"] ?? "Unknown"),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-              buildInfoTile(context, "Nom", userInfo["nom"] ?? "Inconnu"),
-              buildInfoTile(context, "Prénom", userInfo["prenom"] ?? "Inconnu"),
-              buildInfoTile(context, "Téléphone", userInfo["telephone"] ?? "Inconnu"),
-              buildInfoTile(context, "Email", userInfo["email"] ?? "Inconnu"),
-              buildInfoTile(context, "Taille (cm)", userInfo["taille"] ?? "Inconnu"),
-              buildInfoTile(context, "Poids (Kg)", userInfo["poids"] ?? "Inconnu"),
-            ],
-          ),
-        ),
-      ),
-    );
+            ),
+          );
+        });
+  }
+
+  Future<Map<String, String>> _getUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('user_token');
+
+    Map<String, String> userInfo = {};
+    if (token != null) {
+      final Map<String, dynamic> decodedToken = jsonDecode(token);
+      userInfo = {
+        'fullname': decodedToken['fullname'] ?? 'Unknown',
+        'prenom': decodedToken['prenom'] ?? 'Unknown',
+        'telephone': decodedToken['telephone'] ?? 'Unknown',
+        'email': decodedToken['email'] ?? 'Unknown',
+        'height': decodedToken['height']?.toString() ?? 'Unknown',
+        'weight': decodedToken['weight']?.toString() ?? 'Unknown',
+      };
+    }
+    return userInfo;
   }
 
   Widget buildInfoTile(BuildContext context, String title, String value) {
@@ -90,4 +125,3 @@ class AccountPage extends StatelessWidget {
     );
   }
 }
-

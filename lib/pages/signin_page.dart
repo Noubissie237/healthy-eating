@@ -46,12 +46,10 @@ class _SigninPageState extends State<SigninPage> {
 
       // Convertir l'utilisateur en token JSON
       final userToken = jsonEncode({
-        "nom": user.nom,
-        "prenom": user.prenom,
-        "telephone": user.telephone,
+        "fullname": user.fullname,
         "email": user.email,
-        "taille": user.taille,
-        "poids": user.poids,
+        "height": user.height,
+        "weight": user.weight,
       });
 
       await prefs.setString("user_token", userToken);
@@ -63,16 +61,13 @@ class _SigninPageState extends State<SigninPage> {
         (Route<dynamic> route) => false,
       );
     } else {
-      String nature = int.tryParse(_loginController.text) != null
-          ? "Numéro de téléphone"
-          : "Email";
-      String message = "$nature ou mot de passe incorrect.";
+      String message = "Incorrect mail or password !";
 
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           icon: const Icon(Icons.warning_amber_sharp, color: Colors.red),
-          title: const Text("Échec de connexion"),
+          title: const Text("Connexion Failed !"),
           content: Text(
             message,
             textAlign: TextAlign.center,
@@ -119,7 +114,7 @@ class _SigninPageState extends State<SigninPage> {
                     children: [
                       createField(
                           context,
-                          'Téléphone / Email',
+                          'Email',
                           '',
                           false,
                           _loginController,
@@ -128,8 +123,8 @@ class _SigninPageState extends State<SigninPage> {
                           null),
                       createField(
                           context,
-                          'Mot de passe',
-                          'Entrez votre mot de passe',
+                          'Password',
+                          'Enter your password',
                           true,
                           _passwordController,
                           TextInputType.number,
@@ -152,7 +147,7 @@ class _SigninPageState extends State<SigninPage> {
                                 vertical: 10),
                           ),
                           child: const Text(
-                            "Se connecter",
+                            "LOGIN",
                             style: TextStyle(color: MyColors.textColor),
                           )),
                       SizedBox(
@@ -160,12 +155,12 @@ class _SigninPageState extends State<SigninPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text("Vous n'avez pas de compte ? "),
+                          const Text("You don't have an account ? "),
                           TextButton(
                               onPressed: () {
                                 Navigator.pushNamed(context, '/signup');
                               },
-                              child: const Text('Inscrivez-vous'))
+                              child: const Text('register'))
                         ],
                       )
                     ],

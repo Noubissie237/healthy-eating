@@ -22,19 +22,14 @@ class _SignupPageState extends State<SignupPage> {
   final _formKey = GlobalKey<FormState>();
   final DatabaseHelper _databaseHelper = DatabaseHelper();
 
-  final TextEditingController _imageController = TextEditingController();
-  final TextEditingController _nomController = TextEditingController();
-  final TextEditingController _prenomController = TextEditingController();
-  final TextEditingController _telephoneController = TextEditingController();
+  final TextEditingController _fullnameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   void _submitForm() async {
     _formKey.currentState!.save();
     Users user = Users(
-        nom: _nomController.text,
-        prenom: _prenomController.text,
-        telephone: _telephoneController.text,
+        fullname: _fullnameController.text,
         email: _emailController.text,
         password: _passwordController.text);
 
@@ -43,37 +38,28 @@ class _SignupPageState extends State<SignupPage> {
     final prefs = await SharedPreferences.getInstance();
 
     final userToken = jsonEncode({
-      "nom": _nomController.text,
-      "prenom": _prenomController.text,
-      "telephone": _telephoneController.text,
+      "fullname": _fullnameController.text,
       "email": _emailController.text,
-      "taille": null,
-      "poids": null
+      "height": null,
+      "weight": null
     });
 
     await prefs.setString("user_token", userToken);
 
-    _imageController.clear();
-    _nomController.clear();
-    _prenomController.clear();
+    _fullnameController.clear();
     _emailController.clear();
-    _telephoneController.clear();
     _passwordController.clear();
   }
 
   @override
   void initState() {
     super.initState();
-    _imageController.text = 'assets/images/default-user.png';
   }
 
   @override
   void dispose() {
-    _imageController.dispose();
-    _nomController.dispose();
-    _prenomController.dispose();
+    _fullnameController.dispose();
     _emailController.dispose();
-    _telephoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -105,7 +91,7 @@ class _SignupPageState extends State<SignupPage> {
                 Image.asset("assets/images/logo.png",
                     width: MediaQuery.of(context).size.width * 0.5),
                 Text(
-                  "Inscription",
+                  "Registration",
                   style: TextStyle(
                       fontSize: MediaQuery.of(context).size.width * 0.06,
                       fontWeight: FontWeight.bold),
@@ -115,17 +101,8 @@ class _SignupPageState extends State<SignupPage> {
                   key: _formKey,
                   child: Column(
                     children: [
-                      createField(context, 'Nom', 'Entrez votre nom', false,
-                          _nomController, TextInputType.name, 3, null),
-                      createField(
-                          context,
-                          'Prenom',
-                          'Entrez votre prenom',
-                          false,
-                          _prenomController,
-                          TextInputType.name,
-                          3,
-                          null),
+                      createField(context, 'fullname', 'Enter your fullname', false,
+                          _fullnameController, TextInputType.name, 3, null),
                       createField(
                           context,
                           'Email',
@@ -135,9 +112,7 @@ class _SignupPageState extends State<SignupPage> {
                           TextInputType.emailAddress,
                           3,
                           null),
-                      createField(context, 'Téléphone', '690232120', false,
-                          _telephoneController, TextInputType.number, 9, 9),
-                      createField(context, 'Mot de passe', '', true,
+                      createField(context, 'Password', '', true,
                           _passwordController, TextInputType.number, 4, 4),
                       ElevatedButton(
                           onPressed: () {
@@ -163,7 +138,7 @@ class _SignupPageState extends State<SignupPage> {
                                 vertical: 10),
                           ),
                           child: const Text(
-                            "S'inscrire",
+                            "REGISTER",
                             style: TextStyle(color: MyColors.textColor),
                           )),
                       SizedBox(
@@ -171,12 +146,12 @@ class _SignupPageState extends State<SignupPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text("Vous avez déjà un compte ? "),
+                          const Text("Already have an account ? "),
                           TextButton(
                               onPressed: () {
                                 Navigator.pushNamed(context, '/signin');
                               },
-                              child: const Text('Connectez-vous'))
+                              child: const Text('Login'))
                         ],
                       )
                     ],

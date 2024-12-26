@@ -50,8 +50,8 @@ class _ContactPageState extends State<ContactPage> {
               itemBuilder: (context, index) {
                 final user = users[index];
                 return ListTile(
-                  title: Text(user.nom),
-                  subtitle: Text(user.telephone),
+                  title: Text(user.fullname),
+                  subtitle: Text(user.email),
                 );
               },
             );
