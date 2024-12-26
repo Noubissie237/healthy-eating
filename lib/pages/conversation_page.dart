@@ -17,7 +17,7 @@ class ConversationPage extends StatefulWidget {
 class _ConversationPageState extends State<ConversationPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  
+
   // Messages de démonstration
   final List<Message> messages = [
     Message(
@@ -120,7 +120,7 @@ class _ConversationPageState extends State<ConversationPage> {
           BoxShadow(
             offset: const Offset(0, -1),
             blurRadius: 8,
-            color: Colors.black.withOpacity(0.1),
+            color: Color.fromRGBO(0, 0, 0, 0.1)
           ),
         ],
       ),
@@ -128,6 +128,10 @@ class _ConversationPageState extends State<ConversationPage> {
         children: [
           IconButton(
             icon: const Icon(Icons.attach_file),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.camera_alt),
             onPressed: () {},
           ),
           Expanded(
@@ -143,7 +147,7 @@ class _ConversationPageState extends State<ConversationPage> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.camera_alt),
+            icon: const Icon(Icons.mic),
             onPressed: () {},
           ),
           IconButton(
@@ -173,9 +177,8 @@ class _MessageBubble extends StatelessWidget {
   final Message message;
 
   const _MessageBubble({
-    Key? key,
     required this.message,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +193,7 @@ class _MessageBubble extends StatelessWidget {
         decoration: BoxDecoration(
           color: message.isMe
               ? Colors.blue[100]
-              : Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+              : const Color.fromRGBO(29, 158, 158, 0.1),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
