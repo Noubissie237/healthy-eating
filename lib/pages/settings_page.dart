@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:food_app/colors/my_colors.dart';
 import 'package:food_app/utils/utils.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -12,22 +13,22 @@ class SettingsPage extends StatelessWidget {
       appBar: AppBar(
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.black),
+        title: Text('Paramètres', style: TextStyle(color: Colors.black)),
       ),
       body: SingleChildScrollView(
+        padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width * 0.03),
+              padding: EdgeInsets.symmetric(vertical: 16.0),
               child: Row(
                 children: [
                   CircleAvatar(
                     radius: 40,
-                    backgroundImage:
-                        AssetImage('assets/images/default-student.png'),
+                    backgroundImage: AssetImage('assets/images/user.webp'),
                   ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+                  SizedBox(width: 16.0),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,7 +36,7 @@ class SettingsPage extends StatelessWidget {
                         Text(
                           'Wilfried Noubissie',
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -51,30 +52,23 @@ class SettingsPage extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width * 0.04),
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.blue,
-                  backgroundColor: Colors.grey[100],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey[100],
+                foregroundColor: MyColors.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                onPressed: () {
-                  Share.share(
-                      "Télécharger l'application Health Food à l'adresse : \n\nhttps://www.simpletraining.online/app-release.apk");
-                },
-                icon: Icon(Icons.favorite, color: MyColors.primaryColor),
-                label: Text(
-                  'Invite friends',
-                  style: TextStyle(color: MyColors.primaryColor),
-                ),
+                elevation: 2,
               ),
+              onPressed: () {
+                Share.share(
+                    "Télécharger l'application Health Food à l'adresse : \n\nhttps://www.simpletraining.online/app-release.apk");
+              },
+              icon: Icon(Icons.favorite),
+              label: Text('Invite friends'),
             ),
-            SizedBox(height: MediaQuery.of(context).size.width * 0.1),
+            SizedBox(height: 16.0),
             Divider(),
             SettingsSection(
               title: 'Help',
@@ -86,8 +80,12 @@ class SettingsPage extends StatelessWidget {
               title: 'Mon Historique',
               icon: Icons.auto_graph,
               trailing: Text(
-                'STATISTIQUE',
-                style: TextStyle(color: Colors.grey),
+                'STATISTIQUES',
+                style: TextStyle(
+                  color: MyColors.primaryColor,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
               ),
               onTap: () {},
             ),
@@ -95,7 +93,9 @@ class SettingsPage extends StatelessWidget {
             SettingsSection(
               title: 'Mon Compte',
               icon: Icons.person,
-              onTap: () {},
+              onTap: () {
+                Navigator.pushNamed(context, '/account');
+              },
             ),
             Divider(),
             SettingsSection(
@@ -109,7 +109,11 @@ class SettingsPage extends StatelessWidget {
               icon: Icons.logout,
               iconColor: Colors.red,
               textColor: Colors.red,
-              onTap: () {
+              onTap: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('user_token');
+
+                // Redirection vers la page de connexion
                 Navigator.pushNamedAndRemoveUntil(
                     context, '/signin', (Route<dynamic> route) => false);
               },

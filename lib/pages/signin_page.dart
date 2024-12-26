@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:food_app/colors/my_colors.dart';
 import 'package:food_app/database/database_helper.dart';
 import 'package:food_app/utils/utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SigninPage extends StatefulWidget {
   const SigninPage({super.key});
@@ -31,17 +34,40 @@ class _SigninPageState extends State<SigninPage> {
 
   void login() async {
     final dbHelper = DatabaseHelper();
-    final isUserValid = await dbHelper.verifyUser(
-        _loginController.text.trim(), _passwordController.text.trim());
 
-    if (isUserValid) {
+    // Récupérer l'utilisateur par son login et mot de passe
+    final user = await dbHelper.getUserByLogin(
+      _loginController.text.trim(),
+      _passwordController.text.trim(),
+    );
+
+    if (user != null) {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Convertir l'utilisateur en token JSON
+      final userToken = jsonEncode({
+        "nom": user.nom,
+        "prenom": user.prenom,
+        "telephone": user.telephone,
+        "email": user.email,
+        "taille": user.taille,
+        "poids": user.poids,
+      });
+
+      await prefs.setString("user_token", userToken);
+
+      // Rediriger vers la page principale après la connexion
       Navigator.pushNamedAndRemoveUntil(
-          context, '/main', (Route<dynamic> route) => false);
+        context,
+        '/main',
+        (Route<dynamic> route) => false,
+      );
     } else {
       String nature = int.tryParse(_loginController.text) != null
           ? "Numéro de téléphone"
           : "Email";
       String message = "$nature ou mot de passe incorrect.";
+
       showDialog(
         context: context,
         builder: (context) => AlertDialog(

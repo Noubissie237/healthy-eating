@@ -33,7 +33,9 @@ class DatabaseHelper {
         prenom TEXT,
         email TEXT,
         telephone TEXT,
-        password TEXT
+        password TEXT,
+        taille REAL,
+        poids REAL
       )
       ''');
   }
@@ -58,7 +60,9 @@ class DatabaseHelper {
           prenom: maps[i]['prenom'],
           telephone: maps[i]['telephone'],
           email: maps[i]['email'],
-          password: maps[i]['password']);
+          password: maps[i]['password'],
+          taille: maps[i]['taille'],
+          poids: maps[i]['poids']);
     });
   }
 
@@ -69,19 +73,62 @@ class DatabaseHelper {
   }
 
   Future<bool> verifyUser(String login, String password) async {
-  final db = await database;
-  final List<Map<String, dynamic>> result1 = await db!.query(
-    'users',
-    where: 'telephone = ? AND password = ?',
-    whereArgs: [login, password],
-  );
+    final db = await database;
+    final List<Map<String, dynamic>> result1 = await db!.query(
+      'users',
+      where: 'telephone = ? AND password = ?',
+      whereArgs: [login, password],
+    );
     final List<Map<String, dynamic>> result2 = await db.query(
-    'users',
-    where: 'email = ? AND password = ?',
-    whereArgs: [login, password],
-  );
+      'users',
+      where: 'email = ? AND password = ?',
+      whereArgs: [login, password],
+    );
 
-  return result1.isNotEmpty || result2.isNotEmpty;
-}
+    return result1.isNotEmpty || result2.isNotEmpty;
+  }
 
+  Future<Users?> getUserByLogin(String login, String password) async {
+    final db = await database;
+
+    // Vérifier d'abord par téléphone
+    final List<Map<String, dynamic>> result1 = await db!.query(
+      'users',
+      where: 'telephone = ? AND password = ?',
+      whereArgs: [login, password],
+    );
+
+    // Puis par email
+    final List<Map<String, dynamic>> result2 = await db.query(
+      'users',
+      where: 'email = ? AND password = ?',
+      whereArgs: [login, password],
+    );
+
+    if (result1.isNotEmpty) {
+      return Users(
+        id: result1[0]['id'],
+        nom: result1[0]['nom'],
+        prenom: result1[0]['prenom'],
+        telephone: result1[0]['telephone'],
+        email: result1[0]['email'],
+        password: result1[0]['password'],
+        taille: result1[0]['taille'],
+        poids: result1[0]['poids'],
+      );
+    } else if (result2.isNotEmpty) {
+      return Users(
+        id: result2[0]['id'],
+        nom: result2[0]['nom'],
+        prenom: result2[0]['prenom'],
+        telephone: result2[0]['telephone'],
+        email: result2[0]['email'],
+        password: result2[0]['password'],
+        taille: result2[0]['taille'],
+        poids: result2[0]['poids'],
+      );
+    }
+
+    return null;
+  }
 }

@@ -1,7 +1,10 @@
 //import 'dart:io';
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:food_app/colors/my_colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/users.dart';
 import '../database/database_helper.dart';
 import '../utils/utils.dart';
@@ -36,6 +39,19 @@ class _SignupPageState extends State<SignupPage> {
         password: _passwordController.text);
 
     await _databaseHelper.insertStudent(user);
+
+    final prefs = await SharedPreferences.getInstance();
+
+    final userToken = jsonEncode({
+      "nom": _nomController.text,
+      "prenom": _prenomController.text,
+      "telephone": _telephoneController.text,
+      "email": _emailController.text,
+      "taille": null,
+      "poids": null
+    });
+
+    await prefs.setString("user_token", userToken);
 
     _imageController.clear();
     _nomController.clear();
@@ -110,13 +126,19 @@ class _SignupPageState extends State<SignupPage> {
                           TextInputType.name,
                           3,
                           null),
-                      createField(context, 'Email', 'xyz@gmail.com', false,
-                          _emailController, TextInputType.emailAddress, 3, null),
+                      createField(
+                          context,
+                          'Email',
+                          'xyz@gmail.com',
+                          false,
+                          _emailController,
+                          TextInputType.emailAddress,
+                          3,
+                          null),
                       createField(context, 'Téléphone', '690232120', false,
                           _telephoneController, TextInputType.number, 9, 9),
                       createField(context, 'Mot de passe', '', true,
                           _passwordController, TextInputType.number, 4, 4),
-               
                       ElevatedButton(
                           onPressed: () {
                             unFocusMethod();
