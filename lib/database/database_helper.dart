@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../models/users.dart';
+import 'package:food_app/models/users.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -102,4 +102,16 @@ class DatabaseHelper {
 
     return null;
   }
+
+  Future<void> updateHeight(String email, double newHeight) async {
+    final db = await database;
+    await db!.update(
+      'users',
+      {'height': newHeight},
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+  }
+
+
 }
