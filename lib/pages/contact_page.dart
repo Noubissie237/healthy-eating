@@ -1,61 +1,204 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:food_app/database/database_helper.dart';
 import 'package:food_app/models/users.dart';
+import 'package:food_app/pages/conversation_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart'; // Pour générer un ID de conversation unique
 
 class ContactPage extends StatefulWidget {
   const ContactPage({super.key});
 
   @override
-  State<StatefulWidget> createState() {
-    return _ContactPageState();
-  }
+  State<StatefulWidget> createState() => _ContactPageState();
 }
 
 class _ContactPageState extends State<ContactPage> {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
-  late Future<List<Users>> _students;
+  late Future<List<Users>> _users;
+  final TextEditingController _searchController = TextEditingController();
+  List<Users> _filteredUsers = [];
+  bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
-    _students = _databaseHelper.getStudent();
+    _users = _databaseHelper.getUsers();
+  }
+
+  void _filterUsers(String query, List<Users> allUsers) {
+    setState(() {
+      _filteredUsers = allUsers
+          .where((user) =>
+              user.fullname.toLowerCase().contains(query.toLowerCase()) ||
+              user.email.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+  }
+
+  void _navigateToConversation(BuildContext context, Users user) async {
+    // Générer un ID de conversation unique
+    final conversationId = const Uuid().v4();
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('user_token');
+    final Map<String, dynamic> decodedToken;
+    String userID = '';
+
+    if(token != null) {
+      decodedToken = jsonDecode(token);
+      userID = decodedToken['id'].toString();
+    }
+
+    // Vous devrez adapter cette partie en fonction de votre système d'authentification
+    final currentUserId = userID; // Remplacez par l'ID de l'utilisateur actuel
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ConversationPage(
+          contactName: user.fullname,
+          avatarUrl:
+              "https://ui-avatars.com/api/?name=${Uri.encodeComponent(user.fullname)}", // Utilise un service d'avatar par défaut
+          conversationId: conversationId,
+          currentUserId: currentUserId,
+          receiverId: user.id!.toString(),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text("Select contact",
-            style:
-                TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04)),
-        elevation: 8,
+        backgroundColor: const Color(0xFF075E54),
+        title: !_isSearching
+            ? Text(
+                "Sélectionner un contact",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: MediaQuery.of(context).size.width * 0.045,
+                ),
+              )
+            : TextField(
+                controller: _searchController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Rechercher...',
+                  hintStyle: TextStyle(color: Colors.white70),
+                  border: InputBorder.none,
+                ),
+                onChanged: (query) {
+                  _users.then((users) => _filterUsers(query, users));
+                },
+              ),
+        actions: [
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _searchController.clear();
+                  _filteredUsers.clear();
+                }
+              });
+            },
+          ),
+          PopupMenuButton<String>(
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'invite',
+                child: Text('Inviter un ami'),
+              ),
+              const PopupMenuItem(
+                value: 'contacts',
+                child: Text('Actualiser'),
+              ),
+              const PopupMenuItem(
+                value: 'help',
+                child: Text('Aide'),
+              ),
+            ],
+          ),
+        ],
       ),
       body: FutureBuilder(
-          future: _students,
-          builder: (context, snapshop) {
-            if (snapshop.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            } else if (snapshop.hasError) {
-              return Center(
-                child: Text('Error : ${snapshop.error}'),
-              );
-            } else if (!snapshop.hasData || snapshop.data!.isEmpty) {
-              return const Center(child: Text('No user found !'));
-            }
-            final users = snapshop.data!;
-            return ListView.builder(
-              itemCount: users.length,
-              itemBuilder: (context, index) {
-                final user = users[index];
-                return ListTile(
-                  title: Text(user.fullname),
-                  subtitle: Text(user.email),
-                );
-              },
+        future: _users,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF075E54),
+              ),
             );
-          }),
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text('Erreur : ${snapshot.error}'),
+            );
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('Aucun utilisateur trouvé !'));
+          }
+
+          final users = _isSearching && _filteredUsers.isNotEmpty
+              ? _filteredUsers
+              : snapshot.data!;
+
+          return ListView.builder(
+            itemCount: users.length + 1,
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text(
+                        'Contacts sur WhatsApp',
+                        style: TextStyle(
+                          color: Color(0xFF075E54),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                  ],
+                );
+              }
+
+              final user = users[index - 1];
+              return Column(
+                children: [
+                  ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: const Color(0xFF075E54),
+                      child: Text(
+                        user.fullname[0].toUpperCase(),
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    title: Text(
+                      user.fullname,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    subtitle: Text(
+                      user.email,
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                    onTap: () => _navigateToConversation(context, user),
+                  ),
+                  const Divider(height: 1, indent: 72),
+                ],
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

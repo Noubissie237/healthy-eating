@@ -25,7 +25,7 @@ class _HomePage extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-   // _students = _databaseHelper.getStudent();
+   // _students = _databaseHelper.getUsers();
   }
 
   Future<void> _handlePickImage() async {

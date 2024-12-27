@@ -46,6 +46,7 @@ class _SigninPageState extends State<SigninPage> {
 
       // Convertir l'utilisateur en token JSON
       final userToken = jsonEncode({
+        "id": user.id!,
         "fullname": user.fullname,
         "email": user.email,
         "height": user.height,

@@ -1,3 +1,4 @@
+import 'package:food_app/models/chat.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:food_app/models/users.dart';
@@ -36,6 +37,53 @@ class DatabaseHelper {
         weight REAL
       )
       ''');
+
+    // Table des conversations
+    await db.execute('''
+      CREATE TABLE conversations(
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        avatar_url TEXT,
+        is_group INTEGER NOT NULL,
+        participant_ids TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        last_message_at TEXT NOT NULL,
+        last_message_content TEXT,
+        last_message_type TEXT,
+        is_pinned INTEGER NOT NULL DEFAULT 0,
+        is_muted INTEGER NOT NULL DEFAULT 0,
+        unread_count INTEGER DEFAULT 0,
+        last_message_sender TEXT
+      )
+    ''');
+
+    // Table des messages
+    await db.execute('''
+      CREATE TABLE messages(
+        id TEXT PRIMARY KEY,
+        conversation_id TEXT NOT NULL,
+        sender_id TEXT NOT NULL,
+        receiver_id TEXT,
+        type TEXT NOT NULL,
+        content TEXT NOT NULL,
+        metadata TEXT,
+        timestamp TEXT NOT NULL,
+        status TEXT NOT NULL,
+        is_deleted INTEGER NOT NULL DEFAULT 0,
+        deleted_at TEXT,
+        reply_to_message_id TEXT,
+        FOREIGN KEY (conversation_id) REFERENCES conversations (id)
+          ON DELETE CASCADE
+      )
+    ''');
+
+    // Index pour améliorer les performances
+    await db.execute(
+      'CREATE INDEX idx_messages_conversation_id ON messages(conversation_id)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_messages_timestamp ON messages(timestamp)',
+    );
   }
 
   Future<void> insertStudent(Users users) async {
@@ -47,7 +95,7 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Users>> getStudent() async {
+  Future<List<Users>> getUsers() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db!.query('users');
 
@@ -154,6 +202,106 @@ class DatabaseHelper {
       {'password': newPassword},
       where: 'email = ?',
       whereArgs: [email],
+    );
+  }
+
+  /*  Méthodes pour les messages */
+
+  // Méthodes pour les conversations
+  Future<void> insertConversation(Conversation conversation) async {
+    final db = await database;
+    await db!.insert(
+      'conversations',
+      conversation.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<Conversation>> getConversations() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db!.query(
+      'conversations',
+      orderBy: 'last_message_at DESC',
+    );
+    return List.generate(maps.length, (i) => Conversation.fromMap(maps[i]));
+  }
+
+  Future<void> updateConversation(Conversation conversation) async {
+    final db = await database;
+    await db!.update(
+      'conversations',
+      conversation.toMap(),
+      where: 'id = ?',
+      whereArgs: [conversation.id],
+    );
+  }
+
+  Future<void> deleteConversation(String id) async {
+    final db = await database;
+    await db!.delete(
+      'conversations',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  // Méthodes pour les messages
+  Future<void> insertMessage(Message message) async {
+    final db = await database;
+    await db!.insert(
+      'messages',
+      message.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<Message>> getMessages(
+    String conversationId, {
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db!.query(
+      'messages',
+      where: 'conversation_id = ?',
+      whereArgs: [conversationId],
+      orderBy: 'timestamp DESC',
+      limit: limit,
+      offset: offset,
+    );
+    return List.generate(maps.length, (i) => Message.fromMap(maps[i]));
+  }
+
+  Future<void> updateMessageStatus(
+      String messageId, MessageStatus status) async {
+    final db = await database;
+    await db!.update(
+      'messages',
+      {'status': status.toString()},
+      where: 'id = ?',
+      whereArgs: [messageId],
+    );
+  }
+
+  Future<void> softDeleteMessage(String messageId) async {
+    final db = await database;
+    await db!.update(
+      'messages',
+      {
+        'is_deleted': 1,
+        'deleted_at': DateTime.now().toIso8601String(),
+      },
+      where: 'id = ?',
+      whereArgs: [messageId],
+    );
+  }
+
+  Future<void> deleteMessagesForConversation(String conversationId) async {
+    final db = await database;
+    await db!.delete(
+      'messages',
+      where: 'conversation_id = ?',
+      whereArgs: [conversationId],
     );
   }
 }

@@ -47,9 +47,11 @@ class _SignupPageState extends State<SignupPage> {
         );
 
         await _databaseHelper.insertStudent(user);
+        final userTmp = await _databaseHelper.getUserByEmail(email);
 
         final prefs = await SharedPreferences.getInstance();
         final userToken = jsonEncode({
+          "id": userTmp?['id'],
           "fullname": _fullnameController.text.toString().trim().toUpperCase(),
           "email": email,
           "height": null,
