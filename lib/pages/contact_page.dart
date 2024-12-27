@@ -1,9 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:food_app/colors/my_colors.dart';
 import 'package:food_app/database/database_helper.dart';
 import 'package:food_app/models/users.dart';
 import 'package:food_app/pages/conversation_page.dart';
+import 'package:food_app/utils/utils.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart'; // Pour générer un ID de conversation unique
 
@@ -46,7 +49,7 @@ class _ContactPageState extends State<ContactPage> {
     final Map<String, dynamic> decodedToken;
     String userID = '';
 
-    if(token != null) {
+    if (token != null) {
       decodedToken = jsonDecode(token);
       userID = decodedToken['id'].toString();
     }
@@ -74,21 +77,20 @@ class _ContactPageState extends State<ContactPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF075E54),
         title: !_isSearching
             ? Text(
-                "Sélectionner un contact",
+                "Select contact",
                 style: TextStyle(
-                  color: Colors.white,
+                  color: MyColors.textColor,
                   fontSize: MediaQuery.of(context).size.width * 0.045,
                 ),
               )
             : TextField(
                 controller: _searchController,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: MyColors.textColor),
                 decoration: const InputDecoration(
-                  hintText: 'Rechercher...',
-                  hintStyle: TextStyle(color: Colors.white70),
+                  hintText: 'Search...',
+                  hintStyle: TextStyle(color: MyColors.textColor),
                   border: InputBorder.none,
                 ),
                 onChanged: (query) {
@@ -110,17 +112,24 @@ class _ContactPageState extends State<ContactPage> {
           ),
           PopupMenuButton<String>(
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'invite',
-                child: Text('Inviter un ami'),
+                child: TextButton(
+                  onPressed: () {
+                    Share.share(
+                        "Download the Health Food App at : \n\nhttps://www.simpletraining.online/app-release.apk");
+                  },
+                  child: Text("Invite friends"),
+                ),
               ),
-              const PopupMenuItem(
-                value: 'contacts',
-                child: Text('Actualiser'),
-              ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'help',
-                child: Text('Aide'),
+                child: TextButton(
+                  onPressed: () {
+                    lienExterne("https://wa.me/+237690232120");
+                  },
+                  child: Text("Help"),
+                ),
               ),
             ],
           ),
@@ -157,7 +166,7 @@ class _ContactPageState extends State<ContactPage> {
                     const Padding(
                       padding: EdgeInsets.all(16.0),
                       child: Text(
-                        'Contacts sur WhatsApp',
+                        'Contacts',
                         style: TextStyle(
                           color: Color(0xFF075E54),
                           fontWeight: FontWeight.bold,

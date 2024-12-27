@@ -223,7 +223,7 @@ class _ConversationPageState extends State<ConversationPage> {
                     style: const TextStyle(fontSize: 16),
                   ),
                   const Text(
-                    'En ligne',
+                    'Online',
                     style: TextStyle(fontSize: 12),
                   ),
                 ],
@@ -291,7 +291,7 @@ class _ConversationPageState extends State<ConversationPage> {
           BoxShadow(
             offset: const Offset(0, -1),
             blurRadius: 8,
-            color: Colors.black.withOpacity(0.1),
+            color: Color.fromRGBO(0, 0, 0, 0.1),
           ),
         ],
       ),
