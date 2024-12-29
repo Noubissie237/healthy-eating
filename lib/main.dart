@@ -169,8 +169,8 @@ class _MainPageState extends State<MainPage> {
             label: 'Save',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calculate),
-            label: 'Operations',
+            icon: Icon(Icons.location_on),
+            label: 'Maps',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),

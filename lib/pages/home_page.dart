@@ -68,132 +68,273 @@ class _HomePage extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, String>>(
-        future: _getUserInfo(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+      future: _getUserInfo(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
 
-          if (snapshot.hasError) {
-            return Center(child: Text("Data loading error"));
-          }
+        if (snapshot.hasError) {
+          return const Center(
+            child: Text("Data loading error"),
+          );
+        }
 
-          final userInfo = snapshot.data!;
+        final userInfo = snapshot.data!;
+        final bmi = calculerIMC(
+          double.parse(userInfo['weight']!),
+          double.parse(userInfo['height']!),
+        );
 
-          return Scaffold(
-            // backgroundColor: const Color.fromARGB(40, 76, 175, 79),
-            appBar: AppBar(
-              backgroundColor: const Color.fromARGB(40, 76, 175, 79),
-              elevation: 8,
-              title: Image.asset('assets/images/logo.png', width: 100),
-              actions: [
-                IconButton(
-                  onPressed: _handlePickImage,
-                  icon: const Icon(Icons.camera_alt, color: MyColors.textColor),
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: const Color.fromARGB(40, 76, 175, 79),
+            elevation: 8,
+            title: Image.asset('assets/images/logo.png', width: 100),
+            actions: [
+              IconButton(
+                onPressed: _handlePickImage,
+                icon: const Icon(Icons.camera_alt, color: MyColors.textColor),
+              ),
+              IconButton(
+                onPressed: _handleRecordAudio,
+                icon: Icon(
+                  _isRecording ? Icons.mic_off : Icons.mic,
+                  color: MyColors.textColor,
                 ),
-                IconButton(
-                  onPressed: _handleRecordAudio,
-                  icon: Icon(_isRecording ? Icons.mic_off : Icons.mic,
-                      color: MyColors.textColor),
+              ),
+              IconButton(
+                onPressed: () => Navigator.pushNamed(context, '/recordings'),
+                icon: const Icon(Icons.chat, color: MyColors.textColor),
+              ),
+              IconButton(
+                onPressed: () => Navigator.pushNamed(context, '/signup'),
+                icon: const Icon(
+                  Icons.person_add_alt_rounded,
+                  color: MyColors.textColor,
                 ),
-                IconButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/recordings');
-                  },
-                  icon: const Icon(Icons.chat, color: MyColors.textColor),
-                ),
-                IconButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/signup');
-                  },
-                  icon: const Icon(Icons.person_add_alt_rounded,
-                      color: MyColors.textColor),
-                ),
-              ],
-            ),
-            body: Column(
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: SingleChildScrollView(
-                      padding: EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          Text(
+              ),
+            ],
+          ),
+          body: Column(
+            children: [
+              Expanded(
+                flex: 6,
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      children: [
+                        // Greeting Card
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(15),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color.fromRGBO(158, 158, 158, 0.1),
+                                spreadRadius: 2,
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Text(
                             "Hi, ${userInfo['fullname'].toString().split(' ').last.substring(0, 1).toUpperCase()}${userInfo['fullname'].toString().split(' ').last.substring(1).toLowerCase()} 😊",
                             style: TextStyle(
-                                fontSize:
-                                    MediaQuery.of(context).size.width * 0.06,
-                                color: MyColors.textColor),
+                              fontSize:
+                                  MediaQuery.of(context).size.width * 0.06,
+                              color: MyColors.textColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.02),
-                          RichText(
-                            text: TextSpan(children: [
-                              TextSpan(
-                                text: "Weight : ",
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Metrics Card
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(15),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color.fromRGBO(158, 158, 158, 0.1),
+                                spreadRadius: 2,
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildMetricColumn(
+                                context,
+                                "Weight",
+                                "${userInfo['weight']} Kg",
+                                Icons.monitor_weight_outlined,
+                              ),
+                              Container(
+                                width: 1,
+                                height: 50,
+                                color: const Color.fromRGBO(158, 158, 158, 0.3),
+                              ),
+                              _buildMetricColumn(
+                                context,
+                                "Height",
+                                "${userInfo['height']} Cm",
+                                Icons.height,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // BMI Results Card
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(15),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color.fromRGBO(158, 158, 158, 0.1),
+                                spreadRadius: 2,
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                "Your BMI",
                                 style: TextStyle(
+                                  fontSize:
+                                      MediaQuery.of(context).size.width * 0.05,
+                                  color: MyColors.secondaryColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                bmi.toStringAsFixed(2),
+                                style: TextStyle(
+                                  fontSize:
+                                      MediaQuery.of(context).size.width * 0.08,
+                                  color: MyColors.textColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color.fromRGBO(3, 218, 198, 0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  interpreterIMC(bmi),
+                                  style: const TextStyle(
                                     color: MyColors.secondaryColor,
-                                    fontWeight: FontWeight.bold),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
-                              TextSpan(
-                                text: "${userInfo['weight']} Kg",
+                              const SizedBox(height: 15),
+                              Text(
+                                recommandationIMC(bmi),
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    color: MyColors.textColor,
-                                    fontWeight: FontWeight.bold),
+                                  color: const Color.fromRGBO(0, 0, 0, 0.8),
+                                  fontSize: 14,
+                                ),
                               ),
-                              WidgetSpan(
-                                child: SizedBox(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.07),
-                              ),
-                              TextSpan(
-                                text: "Height : ",
-                                style: TextStyle(
-                                    color: MyColors.secondaryColor,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              TextSpan(
-                                text: "${userInfo['height']} Cm",
-                                style: TextStyle(
-                                    color: MyColors.textColor,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ]),
+                            ],
                           ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.03),
-                          Text(
-                            "Your BMI is: ${calculerIMC(double.parse(userInfo['weight']!), double.parse(userInfo['height']!)).toStringAsFixed(2)}",
-                            style: TextStyle(
-                                fontSize:
-                                    MediaQuery.of(context).size.width * 0.05,
-                                color: MyColors.textColor),
-                          ),
-                          Text(
-                            " ``${interpreterIMC(calculerIMC(double.parse(userInfo['weight']!), double.parse(userInfo['height']!)))}``",
-                            style: TextStyle(fontStyle: FontStyle.italic),
-                          ),
-                          Text(recommandationIMC(calculerIMC(
-                              double.parse(userInfo['weight']!),
-                              double.parse(userInfo['height']!))))
-                        ],
-                      )),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                Text("Repas enrégistrées"),
-                const SizedBox(height: 15),
-                Expanded(
-                  flex: 5,
-                  child: ListMealsPage(),
+              ),
+              // Meals Section
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color.fromRGBO(158, 158, 158, 0.1),
+                      spreadRadius: 2,
+                      blurRadius: 8,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        });
+                child: const Text(
+                  "Repas enrégistrées",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const Expanded(
+                flex: 4,
+                child: ListMealsPage(),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMetricColumn(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+  ) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          color: MyColors.secondaryColor,
+          size: 28,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            color: const Color.fromRGBO(0, 0, 0, 0.7),
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            color: MyColors.textColor,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
   }
 
   Future<Map<String, String>> _getUserInfo() async {
