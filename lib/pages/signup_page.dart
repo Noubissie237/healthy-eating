@@ -121,7 +121,7 @@ class _SignupPageState extends State<SignupPage> {
                     children: [
                       createField(
                           context,
-                          'fullname',
+                          'Fullname',
                           'Enter your fullname',
                           false,
                           _fullnameController,

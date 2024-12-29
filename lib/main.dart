@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:food_app/database/meal_provider.dart';
 import 'package:food_app/pages/list_meals_page.dart';
+import 'package:food_app/pages/statistique_page.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:food_app/pages/account_page.dart';
@@ -57,6 +58,7 @@ class MyApp extends StatelessWidget {
         '/contact': (context) => const ContactPage(),
         '/account': (context) => const AccountPage(),
         '/security': (context) => const SecurityPage(),
+        '/statistic': (context) =>  const StatisticsPage(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/chat') {

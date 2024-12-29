@@ -244,7 +244,9 @@ class SettingsPage extends StatelessWidget {
             title: 'My Statistics',
             icon: Icons.auto_graph,
             iconColor: Colors.purple,
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/statistic');
+            },
             trailing: Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 12,
