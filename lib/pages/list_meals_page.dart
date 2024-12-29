@@ -34,7 +34,7 @@ class _ListMealsPage extends State<ListMealsPage> {
           return meals.isEmpty
               ? Center(
                   child: Text(
-                    'Aucun repas ajouté pour le moment',
+                    'No meals added at this time',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey[600],
@@ -92,12 +92,12 @@ class _ListMealsPage extends State<ListMealsPage> {
                           children: [
                             IconButton(
                               icon: Icon(Icons.edit, color: Colors.blueAccent),
-                              tooltip: 'Modifier le repas',
+                              tooltip: 'Update meal',
                               onPressed: () => _showMealDialog(context, meal),
                             ),
                             IconButton(
                               icon: Icon(Icons.delete, color: Colors.redAccent),
-                              tooltip: 'Supprimer le repas',
+                              tooltip: 'Delete meal',
                               onPressed: () => _confirmDelete(context, meal),
                             ),
                           ],
@@ -128,7 +128,7 @@ class _ListMealsPage extends State<ListMealsPage> {
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
         title: Text(
-          meal == null ? 'Ajouter un repas' : 'Modifier le repas',
+          meal == null ? 'Add meal' : 'Update meal',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         content: SingleChildScrollView(
@@ -139,8 +139,8 @@ class _ListMealsPage extends State<ListMealsPage> {
               TextField(
                 controller: nameController,
                 decoration: InputDecoration(
-                  labelText: 'Nom du repas',
-                  hintText: 'Entrez le nom du repas',
+                  labelText: 'Name of meal',
+                  hintText: 'Enter the meal\'s name',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
@@ -153,7 +153,7 @@ class _ListMealsPage extends State<ListMealsPage> {
                 controller: caloriesController,
                 decoration: InputDecoration(
                   labelText: 'Calories',
-                  hintText: 'Entrez le nombre de calories',
+                  hintText: 'Enter the number of calories',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
@@ -199,13 +199,13 @@ class _ListMealsPage extends State<ListMealsPage> {
                 icon: Icon(Icons.calendar_today,
                     color: Theme.of(context).primaryColor),
                 label: Text(
-                  'Sélectionner date et heure',
+                  'Select date and time',
                   style: TextStyle(color: Theme.of(context).primaryColor),
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Date sélectionnée : ${selectedDateTime.toLocal().toString().split(' ')[0]} à '
+                'Selected date : ${selectedDateTime.toLocal().toString().split(' ')[0]} at '
                 '${selectedDateTime.hour}:${selectedDateTime.minute.toString().padLeft(2, '0')}',
                 style: TextStyle(color: Colors.grey[600]),
               ),
@@ -216,7 +216,7 @@ class _ListMealsPage extends State<ListMealsPage> {
           // Bouton Annuler
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler', style: TextStyle(color: Colors.red)),
+            child: const Text('Cancel', style: TextStyle(color: Colors.red)),
           ),
           // Bouton Ajouter / Modifier
           ElevatedButton(
@@ -229,7 +229,7 @@ class _ListMealsPage extends State<ListMealsPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Veuillez remplir correctement tous les champs.',
+                      'Please complete all fields correctly.',
                       style: TextStyle(color: Colors.white),
                     ),
                     backgroundColor: Colors.redAccent,
@@ -261,7 +261,7 @@ class _ListMealsPage extends State<ListMealsPage> {
               padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
             ),
             child: Text(
-              meal == null ? 'Ajouter' : 'Modifier',
+              meal == null ? 'Add' : 'Update',
               style: TextStyle(fontSize: 16),
             ),
           ),
@@ -274,12 +274,12 @@ class _ListMealsPage extends State<ListMealsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmer la suppression'),
-        content: Text('Voulez-vous vraiment supprimer ${meal.name} ?'),
+        title: const Text('Confirm deletion'),
+        content: Text('Are you sure you want to delete ${meal.name} ?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -287,7 +287,7 @@ class _ListMealsPage extends State<ListMealsPage> {
               backgroundColor: Colors.red,
             ),
             child: const Text(
-              'Supprimer',
+              'Delete',
               style: TextStyle(color: MyColors.backgroundColor),
             ),
           ),

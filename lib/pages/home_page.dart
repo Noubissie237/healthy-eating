@@ -28,9 +28,26 @@ class _HomePage extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _initializeValues();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<MealProvider>(context, listen: false).loadMeals();
     });
+  }
+
+  Future<void> _initializeValues() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('user_token');
+
+    if (token != null) {
+      final Map<String, dynamic> decodedToken = jsonDecode(token);
+      final height = decodedToken['height']?.toString() ?? 'Unknown';
+      final weight = decodedToken['weight']?.toString() ?? 'Unknown';
+
+      setState(() {
+        _isHeight = height != 'Unknown';
+        _isWeight = weight != 'Unknown';
+      });
+    }
   }
 
   Future<void> _handlePickImage() async {
@@ -90,6 +107,18 @@ class _HomePage extends State<HomePage> {
                 double.parse(userInfo['weight']!),
                 double.parse(userInfo['height']!),
               );
+
+              // if (userInfo['height'] != 'Unknown') {
+              //   _isHeight = true;
+              // } else {
+              //   _isHeight = false;
+              // }
+
+              // if (userInfo['weight'] != 'Unknown') {
+              //   _isWeight = true;
+              // } else {
+              //   _isWeight = false;
+              // }
 
               return Scaffold(
                 appBar: AppBar(
