@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:food_app/database/meal_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:food_app/pages/account_page.dart';
 import 'package:food_app/pages/chat_page.dart';
@@ -16,11 +18,17 @@ import 'database/database_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  final mealProvider = MealProvider();
+  await mealProvider.loadMeals();
   final dbHelper = DatabaseHelper();
   final isEmpty = await dbHelper.isTableEmpty();
 
-  runApp(MyApp(initialRoute: isEmpty ? '/onboarding' : '/main'));
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => mealProvider,
+      child: MyApp(initialRoute: isEmpty ? '/onboarding' : '/main'),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

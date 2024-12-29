@@ -1,11 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:food_app/models/chat.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:food_app/models/users.dart';
 
-class DatabaseHelper {
-  static final DatabaseHelper _instance = DatabaseHelper._internal();
-  factory DatabaseHelper() => _instance;
+class DatabaseHelper with ChangeNotifier {
+  static final DatabaseHelper instance = DatabaseHelper._internal();
+  factory DatabaseHelper() => instance;
 
   static Database? _database;
 
@@ -74,6 +75,15 @@ class DatabaseHelper {
         reply_to_message_id TEXT,
         FOREIGN KEY (conversation_id) REFERENCES conversations (id)
           ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE meals(
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        calories INTEGER NOT NULL,
+        consumptionDateTime TEXT NOT NULL 
       )
     ''');
 
@@ -304,4 +314,5 @@ class DatabaseHelper {
       whereArgs: [conversationId],
     );
   }
+  
 }
