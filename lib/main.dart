@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:food_app/database/meal_provider.dart';
+import 'package:food_app/pages/list_meals_page.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:food_app/pages/account_page.dart';
@@ -107,7 +108,7 @@ class _MainPageState extends State<MainPage> {
       _pages = [
         const HomePage(),
         ChatPage(currentUserId: userId),
-        const Center(child: Text('Save')),
+        const ListMealsPage(),
         const Center(child: Text('Operations')),
         const SettingsPage(),
       ];

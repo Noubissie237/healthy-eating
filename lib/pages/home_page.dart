@@ -1,14 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:food_app/colors/my_colors.dart';
 import 'package:food_app/database/meal_provider.dart';
-import 'package:food_app/models/meal.dart';
-//import 'package:food_app/database/database_helper.dart';
-//import 'package:food_app/models/users.dart';
+import 'package:food_app/pages/list_meals_page.dart';
 import 'package:food_app/utils/utils.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -68,198 +67,96 @@ class _HomePage extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: MyColors.backgroundColor,
-      appBar: AppBar(
-        elevation: 8,
-        title: Image.asset('assets/images/logo.png', width: 100),
-        actions: [
-          IconButton(
-            onPressed: _handlePickImage,
-            icon: const Icon(Icons.camera_alt, color: MyColors.textColor),
-          ),
-          IconButton(
-            onPressed: _handleRecordAudio,
-            icon: Icon(_isRecording ? Icons.mic_off : Icons.mic,
-                color: MyColors.textColor),
-          ),
-          IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/recordings');
-            },
-            icon: const Icon(Icons.chat, color: MyColors.textColor),
-          ),
-          IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/signup');
-            },
-            icon: const Icon(Icons.person_add_alt_rounded,
-                color: MyColors.textColor),
-          ),
-        ],
-      ),
-      body: Consumer<MealProvider>(
-        builder: (context, mealProvider, child) {
-          final meals = mealProvider.meals;
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: meals.length,
-            itemBuilder: (context, index) {
-              final meal = meals[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 16),
-                child: ListTile(
-                  title: Text(
-                    meal.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    '${meal.calories} calories\n${DateFormat('dd/MM/yyyy HH:mm').format(meal.consumptionDateTime)}',
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _showMealDialog(context, meal),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _confirmDelete(context, meal),
-                      ),
-                    ],
+    return FutureBuilder<Map<String, String>>(
+        future: _getUserInfo(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text("Data loading error"));
+          }
+
+          final userInfo = snapshot.data!;
+
+          return Scaffold(
+            // backgroundColor: const Color.fromARGB(40, 76, 175, 79),
+            appBar: AppBar(
+              backgroundColor: const Color.fromARGB(40, 76, 175, 79),
+              elevation: 8,
+              title: Image.asset('assets/images/logo.png', width: 100),
+              actions: [
+                IconButton(
+                  onPressed: _handlePickImage,
+                  icon: const Icon(Icons.camera_alt, color: MyColors.textColor),
+                ),
+                IconButton(
+                  onPressed: _handleRecordAudio,
+                  icon: Icon(_isRecording ? Icons.mic_off : Icons.mic,
+                      color: MyColors.textColor),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/recordings');
+                  },
+                  icon: const Icon(Icons.chat, color: MyColors.textColor),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/signup');
+                  },
+                  icon: const Icon(Icons.person_add_alt_rounded,
+                      color: MyColors.textColor),
+                ),
+              ],
+            ),
+            body: Column(
+              children: [
+                Expanded(
+                  flex: 5,
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        Text(
+                          "Hi, ${userInfo['fullname'].toString().split(' ').last.substring(0, 1).toUpperCase()}${userInfo['fullname'].toString().split(' ').last.substring(1).toLowerCase()} 😊",
+                          style: TextStyle(
+                              fontSize:
+                                  MediaQuery.of(context).size.width * 0.06),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              );
-            },
+                Text("Repas enrégistrées"),
+                const SizedBox(height: 15),
+                Expanded(
+                  flex: 5,
+                  child: ListMealsPage(),
+                ),
+              ],
+            ),
           );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () => _showMealDialog(context),
-      ),
-    );
+        });
   }
 
-  Future<void> _showMealDialog(BuildContext context, [Meal? meal]) async {
-    final nameController = TextEditingController(text: meal?.name);
-    final caloriesController = TextEditingController(
-      text: meal?.calories.toString(),
-    );
-    DateTime selectedDateTime = meal?.consumptionDateTime ?? DateTime.now();
+  Future<Map<String, String>> _getUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('user_token');
 
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(meal == null ? 'Ajouter un repas' : 'Modifier le repas'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Nom du repas',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: caloriesController,
-              decoration: const InputDecoration(
-                labelText: 'Calories',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () async {
-                final DateTime? picked = await showDatePicker(
-                  context: context,
-                  initialDate: selectedDateTime,
-                  firstDate: DateTime(2020),
-                  lastDate: DateTime(2025),
-                );
-                if (picked != null) {
-                  final TimeOfDay? pickedTime = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.fromDateTime(selectedDateTime),
-                  );
-                  if (pickedTime != null) {
-                    selectedDateTime = DateTime(
-                      picked.year,
-                      picked.month,
-                      picked.day,
-                      pickedTime.hour,
-                      pickedTime.minute,
-                    );
-                  }
-                }
-              },
-              child: const Text('Sélectionner date et heure'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final name = nameController.text;
-              final calories = int.tryParse(caloriesController.text) ?? 0;
-
-              if (name.isNotEmpty && calories > 0) {
-                final newMeal = Meal(
-                  id: meal?.id,
-                  name: name,
-                  calories: calories,
-                  consumptionDateTime: selectedDateTime,
-                );
-
-                final provider = context.read<MealProvider>();
-                if (meal == null) {
-                  provider.addMeal(newMeal);
-                } else {
-                  provider.updateMeal(newMeal);
-                }
-
-                Navigator.pop(context);
-              }
-            },
-            child: Text(meal == null ? 'Ajouter' : 'Modifier'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _confirmDelete(BuildContext context, Meal meal) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmer la suppression'),
-        content: Text('Voulez-vous vraiment supprimer ${meal.name} ?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      context.read<MealProvider>().deleteMeal(meal.id);
+    Map<String, String> userInfo = {};
+    if (token != null) {
+      final Map<String, dynamic> decodedToken = jsonDecode(token);
+      userInfo = {
+        'fullname': decodedToken['fullname'] ?? 'Unknown',
+        'email': decodedToken['email'] ?? 'Unknown',
+        'height': decodedToken['height']?.toString() ?? 'Unknown',
+        'weight': decodedToken['weight']?.toString() ?? 'Unknown',
+      };
     }
+    return userInfo;
   }
 }

@@ -7,7 +7,7 @@ class MealProvider with ChangeNotifier {
   List<Meal> _meals = [];
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  List<Meal> get meals => [..._meals];
+  List<Meal> get meals => [..._meals.reversed];
 
   Future<void> loadMeals() async {
     final db = await _dbHelper.database;
