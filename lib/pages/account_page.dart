@@ -52,12 +52,10 @@ class _AccountPageState extends State<AccountPage> {
       if (userData != null) {
         decodedToken['height'] = userData['height']?.toString();
         decodedToken['weight'] = userData['weight']?.toString();
-
         await prefs.setString('user_token', jsonEncode(decodedToken));
       }
     }
 
-    // Recharger les données après le rafraîchissement
     setState(() {
       _userInfoFuture = _getUserInfo();
     });
@@ -65,133 +63,291 @@ class _AccountPageState extends State<AccountPage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, String>>(
-      future: _userInfoFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.hasError) {
-          return const Center(child: Text("Data loading error"));
-        }
-
-        final userInfo = snapshot.data!;
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text("Personal Information"),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        title: const Text(
+          "Profile",
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.bold,
           ),
-          body: RefreshIndicator(
-            onRefresh: _refreshUserInfo,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ListView(
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: FutureBuilder<Map<String, String>>(
+        future: _userInfoFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Center(
-                    child: Stack(
-                      children: [
-                        const CircleAvatar(
-                          radius: 60,
-                          backgroundImage:
-                              AssetImage('assets/images/user.webp'),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: CircleAvatar(
-                            backgroundColor: Colors.blue,
-                            radius: 18,
-                            child: const Icon(
-                              Icons.camera_alt,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Error loading data",
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
+                ],
+              ),
+            );
+          }
+
+          final userInfo = snapshot.data!;
+          return RefreshIndicator(
+            onRefresh: _refreshUserInfo,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  _buildProfileHeader(userInfo),
                   const SizedBox(height: 20),
-                  buildInfoTile(context, "Fullname",
-                      userInfo["fullname"] ?? "Unknown", false, onTap: () {
-                    downMessage(
-                        context,
-                        const Icon(
-                          Icons.warning_amber_outlined,
-                          color: MyColors.orange,
-                        ),
-                        'You can\'t update this field  !');
-                  }),
-                  buildInfoTile(
-                      context, "Email", userInfo["email"] ?? "Unknown", false,
-                      onTap: () {
-                    downMessage(
-                        context,
-                        const Icon(
-                          Icons.warning_amber_outlined,
-                          color: MyColors.orange,
-                        ),
-                        'You can\'t update this field  !');
-                  }),
-                  buildInfoTile(context, "Height (cm)",
-                      userInfo["height"] ?? "Unknown", true, onTap: () {
-                    _showHeightDialog(
-                        context, userInfo["height"], userInfo["email"]);
-                  }),
-                  buildInfoTile(context, "Weight (Kg)",
-                      userInfo["weight"] ?? "Unknown", true, onTap: () {
-                    _showWeightDialog(
-                        context, userInfo['weight'], userInfo["email"]);
-                  }),
+                  _buildInfoSection(userInfo, context),
+                  const SizedBox(height: 20),
+                  _buildStatsSection(userInfo, context),
                 ],
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
-  Widget buildInfoTile(
-      BuildContext context, String title, String value, bool updatable,
-      {VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
+  Widget _buildProfileHeader(Map<String, String> userInfo) {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              title,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[600],
+          Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color.fromRGBO(158, 158, 158, 0.2),
+                      spreadRadius: 2,
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const CircleAvatar(
+                  radius: 60,
+                  backgroundImage: AssetImage('assets/images/user.webp'),
+                ),
               ),
-            ),
-            subtitle: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.black,
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: MyColors.secondaryColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.camera_alt,
+                        color: Colors.white, size: 20),
+                    onPressed: () {},
+                    constraints:
+                        const BoxConstraints.tightFor(width: 40, height: 40),
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
               ),
-            ),
-            trailing: updatable
-                ? Icon(
-                    Icons.arrow_forward_ios,
-                    color: Colors.grey[400],
-                    size: 18,
-                  )
-                : null,
+            ],
           ),
-          Divider(color: Colors.grey[300]),
+          const SizedBox(height: 16),
+          Text(
+            userInfo['fullname'] ?? 'Unknown',
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            userInfo['email'] ?? 'Unknown',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildInfoSection(Map<String, String> userInfo, BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color.fromRGBO(158, 158, 158, 0.1),
+            spreadRadius: 1,
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              "Personal Information",
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ),
+          const Divider(height: 1),
+          _buildInfoTile(
+            icon: Icons.person_outline,
+            title: "Full Name",
+            value: userInfo["fullname"] ?? "Unknown",
+            onTap: () => _showLockedFieldMessage(context),
+          ),
+          _buildInfoTile(
+            icon: Icons.email_outlined,
+            title: "Email",
+            value: userInfo["email"] ?? "Unknown",
+            onTap: () => _showLockedFieldMessage(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsSection(
+      Map<String, String> userInfo, BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color.fromRGBO(158, 158, 158, 0.1),
+            spreadRadius: 1,
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              "Body Measurements",
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ),
+          const Divider(height: 1),
+          _buildInfoTile(
+            icon: Icons.height,
+            title: "Height",
+            value: "${userInfo["height"] ?? "Unknown"} cm",
+            isEditable: true,
+            onTap: () => _showHeightDialog(
+                context, userInfo["height"], userInfo["email"]),
+          ),
+          _buildInfoTile(
+            icon: Icons.monitor_weight_outlined,
+            title: "Weight",
+            value: "${userInfo["weight"] ?? "Unknown"} kg",
+            isEditable: true,
+            onTap: () => _showWeightDialog(
+                context, userInfo["weight"], userInfo["email"]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoTile({
+    required IconData icon,
+    required String title,
+    required String value,
+    bool isEditable = false,
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color.fromRGBO(3, 218, 198, 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: MyColors.secondaryColor),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isEditable)
+              const Icon(
+                Icons.chevron_right,
+                color: Colors.grey,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLockedFieldMessage(BuildContext context) {
+    downMessage(
+      context,
+      const Icon(Icons.lock_outline, color: MyColors.secondaryColor),
+      'This field cannot be modified',
     );
   }
 
@@ -206,49 +362,38 @@ class _AccountPageState extends State<AccountPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Update Height"),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            "Update Height",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           content: TextField(
             controller: heightController,
             keyboardType: TextInputType.number,
-            decoration:
-                const InputDecoration(labelText: "Enter new height (cm)"),
+            decoration: InputDecoration(
+              labelText: "Height (cm)",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              prefixIcon: const Icon(Icons.height),
+            ),
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text("Cancel"),
             ),
-            TextButton(
-              onPressed: () async {
-                final newHeight = double.tryParse(heightController.text);
-                if (newHeight != null && email != null) {
-                  final dbHelper = DatabaseHelper();
-                  await dbHelper.updateHeight(email, newHeight);
-
-                  final prefs = await SharedPreferences.getInstance();
-                  final token = prefs.getString('user_token');
-
-                  if (token != null) {
-                    final Map<String, dynamic> decodedToken = jsonDecode(token);
-                    decodedToken['height'] = newHeight;
-                    await prefs.setString(
-                        'user_token', jsonEncode(decodedToken));
-                  }
-
-                  setState(() {
-                    _userInfoFuture = _getUserInfo();
-                  });
-
-                  Navigator.of(context).pop();
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text("Please enter a valid height")),
-                  );
-                }
-              },
+            ElevatedButton(
+              onPressed: () =>
+                  _updateHeight(context, heightController.text, email),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: MyColors.secondaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
               child: const Text("Update"),
             ),
           ],
@@ -268,54 +413,90 @@ class _AccountPageState extends State<AccountPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Update Weight"),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            "Update Weight",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           content: TextField(
             controller: weightController,
             keyboardType: TextInputType.number,
-            decoration:
-                const InputDecoration(labelText: "Enter new weight (kg)"),
+            decoration: InputDecoration(
+              labelText: "Weight (kg)",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              prefixIcon: const Icon(Icons.monitor_weight_outlined),
+            ),
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text("Cancel"),
             ),
-            TextButton(
-              onPressed: () async {
-                final newWeight = double.tryParse(weightController.text);
-                if (newWeight != null && email != null) {
-                  final dbHelper = DatabaseHelper();
-                  await dbHelper.updateWeight(email, newWeight);
-
-                  final prefs = await SharedPreferences.getInstance();
-                  final token = prefs.getString('user_token');
-
-                  if (token != null) {
-                    final Map<String, dynamic> decodedToken = jsonDecode(token);
-                    decodedToken['weight'] = newWeight;
-                    await prefs.setString(
-                        'user_token', jsonEncode(decodedToken));
-                  }
-
-                  setState(() {
-                    _userInfoFuture = _getUserInfo();
-                  });
-
-                  Navigator.of(context).pop();
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text("Please enter a valid weight")),
-                  );
-                }
-              },
+            ElevatedButton(
+              onPressed: () =>
+                  _updateWeight(context, weightController.text, email),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: MyColors.secondaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
               child: const Text("Update"),
             ),
           ],
         );
       },
     );
+  }
+
+  Future<void> _updateHeight(
+      BuildContext context, String heightStr, String? email) async {
+    final newHeight = double.tryParse(heightStr);
+    if (newHeight != null && email != null) {
+      final dbHelper = DatabaseHelper();
+      await dbHelper.updateHeight(email, newHeight);
+      await _updateUserToken('height', newHeight);
+      setState(() {
+        _userInfoFuture = _getUserInfo();
+      });
+      Navigator.of(context).pop();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter a valid height")),
+      );
+    }
+  }
+
+  Future<void> _updateWeight(
+      BuildContext context, String weightStr, String? email) async {
+    final newWeight = double.tryParse(weightStr);
+    if (newWeight != null && email != null) {
+      final dbHelper = DatabaseHelper();
+      await dbHelper.updateWeight(email, newWeight);
+      await _updateUserToken('weight', newWeight);
+      setState(() {
+        _userInfoFuture = _getUserInfo();
+      });
+      Navigator.of(context).pop();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter a valid weight")),
+      );
+    }
+  }
+
+  Future<void> _updateUserToken(String field, dynamic value) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('user_token');
+
+    if (token != null) {
+      final Map<String, dynamic> decodedToken = jsonDecode(token);
+      decodedToken[field] = value;
+      await prefs.setString('user_token', jsonEncode(decodedToken));
+    }
   }
 }
