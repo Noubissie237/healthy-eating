@@ -22,8 +22,8 @@ class _HomePage extends State<HomePage> {
   File? _imageFile;
   String? _audioPath;
   bool _isRecording = false;
-  final bool _isWeight = false;
-  final bool _isHeight = false;
+  bool _isWeight = false;
+  bool _isHeight = false;
 
   @override
   void initState() {
@@ -404,12 +404,12 @@ class _HomePage extends State<HomePage> {
                                 Container(
                                   padding: const EdgeInsets.all(20),
                                   decoration: BoxDecoration(
-                                    color: MyColors.secondaryColor
-                                        .withOpacity(0.1),
+                                    color:
+                                        const Color.fromRGBO(3, 218, 198, 0.1),
                                     borderRadius: BorderRadius.circular(15),
                                     border: Border.all(
-                                      color: MyColors.secondaryColor
-                                          .withOpacity(0.2),
+                                      color: const Color.fromRGBO(
+                                          3, 218, 198, 0.1),
                                       width: 1,
                                     ),
                                   ),
@@ -425,7 +425,7 @@ class _HomePage extends State<HomePage> {
                                           const SizedBox(width: 12),
                                           Expanded(
                                             child: Text(
-                                              "Pour personnaliser votre suivi et vous aider à atteindre vos objectifs, nous vous invitons à entrer votre poids et votre taille.",
+                                              "To personalize your tracking and help you achieve your goals, we invite you to enter your weight and height.",
                                               style: TextStyle(
                                                 fontSize: 16,
                                                 color: MyColors.textColor,
@@ -437,11 +437,11 @@ class _HomePage extends State<HomePage> {
                                       ),
                                       const SizedBox(height: 12),
                                       Text(
-                                        "Ces informations nous permettront de vous proposer des recommandations adaptées à votre profil. C'est simple et rapide ! Prêt à commencer votre parcours vers une meilleure santé ?",
+                                        "This information will allow us to offer you recommendations tailored to your profile. It's quick and easy! Ready to start your journey to better health?",
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: MyColors.textColor
-                                              .withOpacity(0.8),
+                                          color: const Color.fromRGBO(
+                                              0, 0, 0, 0.8),
                                         ),
                                       ),
                                     ],
@@ -458,7 +458,8 @@ class _HomePage extends State<HomePage> {
                                     borderRadius: BorderRadius.circular(15),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.grey.withOpacity(0.08),
+                                        color: const Color.fromRGBO(
+                                            158, 158, 158, 0.08),
                                         spreadRadius: 2,
                                         blurRadius: 10,
                                         offset: const Offset(0, 3),
@@ -468,7 +469,7 @@ class _HomePage extends State<HomePage> {
                                   child: Column(
                                     children: [
                                       const Text(
-                                        "Pour remplir votre poids et votre taille :",
+                                        "To fill in your weight and height: ",
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w500,
@@ -483,7 +484,8 @@ class _HomePage extends State<HomePage> {
                                           vertical: 10,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Colors.grey.withOpacity(0.1),
+                                          color: const Color.fromRGBO(
+                                              158, 158, 158, 0.1),
                                           borderRadius:
                                               BorderRadius.circular(8),
                                         ),
@@ -493,8 +495,8 @@ class _HomePage extends State<HomePage> {
                                             Icon(
                                               Icons.settings,
                                               size: 20,
-                                              color: MyColors.textColor
-                                                  .withOpacity(0.7),
+                                              color: const Color.fromRGBO(
+                                                  0, 0, 0, 0.7),
                                             ),
                                             const SizedBox(width: 8),
                                             const Text(
@@ -513,10 +515,10 @@ class _HomePage extends State<HomePage> {
                                             MainAxisAlignment.center,
                                         children: [
                                           Text(
-                                            "Ou cliquez",
+                                            "Or click",
                                             style: TextStyle(
-                                              color: MyColors.textColor
-                                                  .withOpacity(0.8),
+                                              color: const Color.fromRGBO(
+                                                  0, 0, 0, 0.8),
                                             ),
                                           ),
                                           TextButton(
@@ -529,9 +531,9 @@ class _HomePage extends State<HomePage> {
                                                   const EdgeInsets.symmetric(
                                                       horizontal: 16,
                                                       vertical: 8),
-                                              backgroundColor: MyColors
-                                                  .secondaryColor
-                                                  .withOpacity(0.1),
+                                              backgroundColor:
+                                                  const Color.fromRGBO(
+                                                      3, 218, 198, 0.1),
                                               shape: RoundedRectangleBorder(
                                                 borderRadius:
                                                     BorderRadius.circular(20),
@@ -541,7 +543,7 @@ class _HomePage extends State<HomePage> {
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 const Text(
-                                                  "ici",
+                                                  "here",
                                                   style: TextStyle(
                                                     color:
                                                         MyColors.secondaryColor,
