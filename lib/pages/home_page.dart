@@ -118,18 +118,71 @@ class _HomePage extends State<HomePage> {
                 Expanded(
                   flex: 5,
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        Text(
-                          "Hi, ${userInfo['fullname'].toString().split(' ').last.substring(0, 1).toUpperCase()}${userInfo['fullname'].toString().split(' ').last.substring(1).toLowerCase()} 😊",
-                          style: TextStyle(
-                              fontSize:
-                                  MediaQuery.of(context).size.width * 0.06),
-                        ),
-                      ],
-                    ),
-                  ),
+                      padding: EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          Text(
+                            "Hi, ${userInfo['fullname'].toString().split(' ').last.substring(0, 1).toUpperCase()}${userInfo['fullname'].toString().split(' ').last.substring(1).toLowerCase()} 😊",
+                            style: TextStyle(
+                                fontSize:
+                                    MediaQuery.of(context).size.width * 0.06,
+                                color: MyColors.textColor),
+                          ),
+                          SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 0.02),
+                          RichText(
+                            text: TextSpan(children: [
+                              TextSpan(
+                                text: "Weight : ",
+                                style: TextStyle(
+                                    color: MyColors.secondaryColor,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(
+                                text: "${userInfo['weight']} Kg",
+                                style: TextStyle(
+                                    color: MyColors.textColor,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              WidgetSpan(
+                                child: SizedBox(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.07),
+                              ),
+                              TextSpan(
+                                text: "Height : ",
+                                style: TextStyle(
+                                    color: MyColors.secondaryColor,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(
+                                text: "${userInfo['height']} Cm",
+                                style: TextStyle(
+                                    color: MyColors.textColor,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ]),
+                          ),
+                          SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 0.03),
+                          Text(
+                            "Your BMI is: ${calculerIMC(double.parse(userInfo['weight']!), double.parse(userInfo['height']!)).toStringAsFixed(2)}",
+                            style: TextStyle(
+                                fontSize:
+                                    MediaQuery.of(context).size.width * 0.05,
+                                color: MyColors.textColor),
+                          ),
+                          Text(
+                            " ``${interpreterIMC(calculerIMC(double.parse(userInfo['weight']!), double.parse(userInfo['height']!)))}``",
+                            style: TextStyle(fontStyle: FontStyle.italic),
+                          ),
+                          Text(recommandationIMC(calculerIMC(
+                              double.parse(userInfo['weight']!),
+                              double.parse(userInfo['height']!))))
+                        ],
+                      )),
                 ),
                 Text("Repas enrégistrées"),
                 const SizedBox(height: 15),

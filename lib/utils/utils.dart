@@ -122,3 +122,53 @@ void lienExterne(String link) async {
     throw 'Could not launch $url';
   }
 }
+
+double calculerIMC(double weight, double height) {
+  // Convertir la taille de cm en m
+  double tailleEnMetres = height / 100;
+
+  // Calculer l'IMC
+  double imc = weight / (tailleEnMetres * tailleEnMetres);
+
+  return imc;
+}
+
+String interpreterIMC(double imc) {
+  if (imc < 16) {
+    return "Severe undernutrition";
+  } else if (imc < 16.9) {
+    return "Moderate undernutrition";
+  } else if (imc < 18.4) {
+    return "Mild undernutrition";
+  } else if (imc < 24.9) {
+    return "Normal weight";
+  } else if (imc < 29.9) {
+    return "Overweight";
+  } else if (imc < 34.9) {
+    return "Moderate obesity";
+  } else if (imc < 39.9) {
+    return "Severe obesity";
+  } else {
+    return "Morbid obesity";
+  }
+}
+
+String recommandationIMC(double imc) {
+  if (imc < 16) {
+    return "Please consult a doctor as soon as possible.";
+  } else if (imc < 16.9) {
+    return "Consider increasing your caloric intake.";
+  } else if (imc < 18.4) {
+    return "Focus on a balanced diet to gain weight healthily.";
+  } else if (imc < 24.9) {
+    return "Maintain your current healthy lifestyle.";
+  } else if (imc < 29.9) {
+    return "Try to incorporate regular exercise and balanced meals.";
+  } else if (imc < 34.9) {
+    return "Consider reducing your daily caloric intake and increasing physical activity.";
+  } else if (imc < 39.9) {
+    return "It's important to consult a healthcare professional for a weight management plan.";
+  } else {
+    return "Seek immediate medical advice for a comprehensive weight management strategy.";
+  }
+}
