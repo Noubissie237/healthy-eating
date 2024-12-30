@@ -147,7 +147,7 @@ class _AccountPageState extends State<AccountPage> {
                 ),
                 child: const CircleAvatar(
                   radius: 60,
-                  backgroundImage: AssetImage('assets/images/user.webp'),
+                  backgroundImage: AssetImage('assets/images/default-img.png'),
                 ),
               ),
               Positioned(
