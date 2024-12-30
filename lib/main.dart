@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
         '/contact': (context) => const ContactPage(),
         '/account': (context) => const AccountPage(),
         '/security': (context) => const SecurityPage(),
-        '/statistic': (context) =>  const StatisticsPage(),
+        '/statistic': (context) => const StatisticsPage(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/chat') {
@@ -94,15 +94,39 @@ class MainPage extends StatefulWidget {
   State<MainPage> createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   int _selectedIndex = 0;
   late List<Widget> _pages;
   bool _isLoading = true;
+
+  // Ajout des contrôleurs d'animation
+  late List<AnimationController> _animationControllers;
+  late List<Animation<double>> _animations;
 
   @override
   void initState() {
     super.initState();
     _initializePages();
+    _initializeAnimations();
+  }
+
+  void _initializeAnimations() {
+    _animationControllers = List.generate(
+      5,
+      (index) => AnimationController(
+        duration: const Duration(milliseconds: 300),
+        vsync: this,
+      ),
+    );
+
+    _animations = _animationControllers.map((controller) {
+      return Tween<double>(begin: 1.0, end: 1.2).animate(
+        CurvedAnimation(parent: controller, curve: Curves.easeInOut),
+      );
+    }).toList();
+
+    // Animer l'icône initiale
+    _animationControllers[0].forward();
   }
 
   Future<void> _initializePages() async {
@@ -140,9 +164,23 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _onItemTapped(int index) {
+    // Réinitialiser l'animation précédente
+    _animationControllers[_selectedIndex].reverse();
+
     setState(() {
       _selectedIndex = index;
     });
+
+    // Démarrer la nouvelle animation
+    _animationControllers[index].forward();
+  }
+
+  @override
+  void dispose() {
+    for (var controller in _animationControllers) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -157,34 +195,67 @@ class _MainPageState extends State<MainPage> {
 
     return Scaffold(
       body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          child: BottomNavigationBar(
+            items: List.generate(5, (index) {
+              return BottomNavigationBarItem(
+                icon: ScaleTransition(
+                  scale: _animations[index],
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _selectedIndex == index
+                          ? Colors.deepPurple.withOpacity(0.1)
+                          : Colors.transparent,
+                    ),
+                    child: Icon(
+                      [
+                        Icons.home_rounded,
+                        Icons.chat_rounded,
+                        Icons.save_rounded,
+                        Icons.location_on_rounded,
+                        Icons.settings_rounded,
+                      ][index],
+                    ),
+                  ),
+                ),
+                label: [
+                  'Home',
+                  'Chat',
+                  'Save',
+                  'Maps',
+                  'Settings',
+                ][index],
+              );
+            }),
+            currentIndex: _selectedIndex,
+            selectedItemColor: Colors.deepPurple,
+            unselectedItemColor: Colors.grey,
+            backgroundColor: Colors.white,
+            elevation: 0,
+            type: BottomNavigationBarType.fixed,
+            selectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 12,
+            ),
+            onTap: _onItemTapped,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chat',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.save),
-            label: 'Save',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.location_on),
-            label: 'Maps',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.deepPurple,
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
+        ),
       ),
     );
   }
