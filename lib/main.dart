@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:food_app/database/meal_provider.dart';
 import 'package:food_app/database/user_goal_provider.dart';
-import 'package:food_app/pages/list_meals_page.dart';
 import 'package:food_app/pages/maps_page.dart';
 import 'package:food_app/pages/statistique_page.dart';
 import 'package:provider/provider.dart';
@@ -145,7 +144,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       _pages = [
         const HomePage(),
         ChatPage(currentUserId: userId),
-        const ListMealsPage(),
+        const StatisticsPage(),
         const MapsPage(),
         const SettingsPage(),
       ];
@@ -234,7 +233,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                       [
                         Icons.home_rounded,
                         Icons.chat_rounded,
-                        Icons.save_rounded,
+                        Icons.auto_graph,
                         Icons.location_on_rounded,
                         Icons.settings_rounded,
                       ][index],
@@ -244,7 +243,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                 label: [
                   'Home',
                   'Chat',
-                  'Save',
+                  'Stats',
                   'Maps',
                   'Settings',
                 ][index],

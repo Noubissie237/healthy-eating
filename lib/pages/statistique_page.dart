@@ -300,10 +300,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
-          ),
         ),
         body: SingleChildScrollView(
           child: Column(
@@ -343,12 +339,68 @@ class _StatisticsPageState extends State<StatisticsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Your Goal',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Your Goal',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.help_outline,
+                    size: 20,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Daily Calorie Goals'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildGoalInfo(
+                                'Stay Fit',
+                                '2000 calories/day',
+                                'Maintain your current weight',
+                                Colors.green,
+                              ),
+                              const SizedBox(height: 12),
+                              _buildGoalInfo(
+                                'Weight Loss',
+                                '1800 calories/day',
+                                'Caloric deficit for weight loss',
+                                Colors.red,
+                              ),
+                              const SizedBox(height: 12),
+                              _buildGoalInfo(
+                                'Muscle Gain',
+                                '2500 calories/day',
+                                'Caloric surplus for muscle growth',
+                                Colors.blue,
+                              ),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(
+                              child: const Text('Close'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             Row(
@@ -382,6 +434,51 @@ class _StatisticsPageState extends State<StatisticsPage> {
         ),
       );
     });
+  }
+
+  Widget _buildGoalInfo(
+      String goal, String calories, String description, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 40,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                goal,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+              Text(
+                calories,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                description,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildGoalOption(
