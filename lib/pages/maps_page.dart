@@ -52,7 +52,6 @@ class _MapsPageState extends State<MapsPage> {
   }
 
   Future<void> _findNearestPlace(String placeType) async {
-    print("---------------------------------- I'm Enter in $currentLocation");
     if (currentLocation == null) return;
 
     setState(() => isLoading = true);
@@ -97,7 +96,7 @@ class _MapsPageState extends State<MapsPage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erreur lors de la recherche')),
+        const SnackBar(content: Text('Error while searching')),
       );
     }
 
@@ -110,7 +109,7 @@ class _MapsPageState extends State<MapsPage> {
       body: Stack(
         children: [
           currentLocation == null
-              ? const Center(child: Text('Chargement de la carte...'))
+              ? const Center(child: Text('Loading the map...'))
               : GoogleMap(
                   initialCameraPosition: CameraPosition(
                     target: currentLocation!,
@@ -129,14 +128,14 @@ class _MapsPageState extends State<MapsPage> {
             child: Column(
               children: [
                 _buildOptionCard(
-                  'Trouver le restaurant le plus proche',
+                  'Order from the nearest restaurant',
                   Icons.restaurant,
                   Colors.orange,
                   () => _findNearestPlace('restaurant'),
                 ),
                 const SizedBox(height: 10),
                 _buildOptionCard(
-                  'Trouver l\'hôpital le plus proche',
+                  'Find the nearest dietitian',
                   Icons.local_hospital,
                   Colors.red,
                   () => _findNearestPlace('hospital'),
