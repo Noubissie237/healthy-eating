@@ -110,8 +110,8 @@ class _ListMealsPage extends State<ListMealsPage> {
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    MyColors.secondaryColor.withOpacity(0.7),
-                                    MyColors.secondaryColor,
+                                    MyColors.primaryColor.withOpacity(0.7),
+                                    MyColors.primaryColor,
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
@@ -190,7 +190,7 @@ class _ListMealsPage extends State<ListMealsPage> {
                               children: [
                                 IconButton(
                                   icon: const Icon(Icons.edit),
-                                  color: MyColors.secondaryColor,
+                                  color: MyColors.primaryColor,
                                   onPressed: () =>
                                       _showMealDialog(context, meal),
                                   tooltip: 'Update',
@@ -217,7 +217,7 @@ class _ListMealsPage extends State<ListMealsPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showMealDialog(context),
-        backgroundColor: MyColors.secondaryColor,
+        backgroundColor: MyColors.primaryColor,
         icon: const Icon(Icons.add),
         label: const Text(
           'Add a meal',
@@ -244,7 +244,7 @@ class _ListMealsPage extends State<ListMealsPage> {
           children: [
             Icon(
               meal == null ? Icons.add_circle : Icons.edit,
-              color: MyColors.secondaryColor,
+              color: MyColors.primaryColor,
               size: 28,
             ),
             const SizedBox(width: 8),
@@ -269,15 +269,15 @@ class _ListMealsPage extends State<ListMealsPage> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide:
-                        BorderSide(color: MyColors.secondaryColor, width: 2),
+                        BorderSide(color: MyColors.primaryColor, width: 2),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide:
-                        BorderSide(color: MyColors.secondaryColor, width: 2),
+                        BorderSide(color: MyColors.primaryColor, width: 2),
                   ),
                   prefixIcon: Icon(Icons.restaurant_menu,
-                      color: MyColors.secondaryColor),
+                      color: MyColors.primaryColor),
                 ),
               ),
               const SizedBox(height: 16),
@@ -289,12 +289,12 @@ class _ListMealsPage extends State<ListMealsPage> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide:
-                        BorderSide(color: MyColors.secondaryColor, width: 2),
+                        BorderSide(color: MyColors.primaryColor, width: 2),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide:
-                        BorderSide(color: MyColors.secondaryColor, width: 2),
+                        BorderSide(color: MyColors.primaryColor, width: 2),
                   ),
                   prefixIcon:
                       Icon(Icons.local_fire_department, color: MyColors.failed),
@@ -304,7 +304,7 @@ class _ListMealsPage extends State<ListMealsPage> {
               const SizedBox(height: 20),
               Container(
                 decoration: BoxDecoration(
-                  border: Border.all(color: MyColors.secondaryColor, width: 2),
+                  border: Border.all(color: MyColors.primaryColor, width: 2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Material(
@@ -321,7 +321,7 @@ class _ListMealsPage extends State<ListMealsPage> {
                           return Theme(
                             data: Theme.of(context).copyWith(
                               colorScheme: ColorScheme.light(
-                                primary: MyColors.secondaryColor,
+                                primary: MyColors.primaryColor,
                               ),
                             ),
                             child: child!,
@@ -336,7 +336,7 @@ class _ListMealsPage extends State<ListMealsPage> {
                             return Theme(
                               data: Theme.of(context).copyWith(
                                 colorScheme: ColorScheme.light(
-                                  primary: MyColors.secondaryColor,
+                                  primary: MyColors.primaryColor,
                                 ),
                               ),
                               child: child!,
@@ -361,7 +361,7 @@ class _ListMealsPage extends State<ListMealsPage> {
                       child: Row(
                         children: [
                           Icon(Icons.calendar_today,
-                              color: MyColors.secondaryColor),
+                              color: MyColors.primaryColor),
                           const SizedBox(width: 8),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -439,7 +439,7 @@ class _ListMealsPage extends State<ListMealsPage> {
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: MyColors.secondaryColor,
+              backgroundColor: MyColors.primaryColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.0),
               ),
@@ -529,7 +529,7 @@ class _ListMealsPage extends State<ListMealsPage> {
               'The meal ${meal.name} was deleted',
               style: const TextStyle(color: Colors.white),
             ),
-            //backgroundColor: MyColors.secondaryColor,
+            //backgroundColor: MyColors.primaryColor,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),

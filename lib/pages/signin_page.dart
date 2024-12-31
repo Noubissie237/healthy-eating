@@ -229,7 +229,7 @@ class _SigninPageState extends State<SigninPage> {
     return ElevatedButton(
       onPressed: _isLoading ? null : _login,
       style: ElevatedButton.styleFrom(
-        backgroundColor: MyColors.secondaryColor,
+        backgroundColor: MyColors.primaryColor,
         padding: const EdgeInsets.symmetric(
           horizontal: 48.0,
           vertical: 12.0,

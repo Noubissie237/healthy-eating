@@ -155,7 +155,7 @@ class _AccountPageState extends State<AccountPage> {
                 right: 0,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: MyColors.secondaryColor,
+                    color: MyColors.primaryColor,
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white, width: 2),
                   ),
@@ -307,7 +307,7 @@ class _AccountPageState extends State<AccountPage> {
                 color: const Color.fromRGBO(3, 218, 198, 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: MyColors.secondaryColor),
+              child: Icon(icon, color: MyColors.primaryColor),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -346,7 +346,7 @@ class _AccountPageState extends State<AccountPage> {
   void _showLockedFieldMessage(BuildContext context) {
     downMessage(
       context,
-      const Icon(Icons.lock_outline, color: MyColors.secondaryColor),
+      const Icon(Icons.lock_outline, color: MyColors.primaryColor),
       'This field cannot be modified',
     );
   }
@@ -389,7 +389,7 @@ class _AccountPageState extends State<AccountPage> {
               onPressed: () =>
                   _updateHeight(context, heightController.text, email),
               style: ElevatedButton.styleFrom(
-                backgroundColor: MyColors.secondaryColor,
+                backgroundColor: MyColors.primaryColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -440,7 +440,7 @@ class _AccountPageState extends State<AccountPage> {
               onPressed: () =>
                   _updateWeight(context, weightController.text, email),
               style: ElevatedButton.styleFrom(
-                backgroundColor: MyColors.secondaryColor,
+                backgroundColor: MyColors.primaryColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),

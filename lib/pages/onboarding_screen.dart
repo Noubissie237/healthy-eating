@@ -18,7 +18,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Welcome !',
       description: 'Track your meals and improve your health',
       image: '', // Ajoutez vos images
-      backgroundColor: MyColors.secondaryColor,
+      backgroundColor: MyColors.primaryColor,
       iconData: Icons.restaurant_menu,
     ),
     OnboardingContent(
@@ -26,7 +26,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       description:
           'Easily record every meal with ingredients, servings and calories. Visualize your eating habits to make healthier choices.',
       image: '',
-      backgroundColor: Color(0xFF2ECC71),
+      backgroundColor: MyColors.secondaryColor,
       iconData: Icons.track_changes,
     ),
     OnboardingContent(
@@ -34,7 +34,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       description:
           'Calculate your body mass index by entering your weight and height. Track your progress and get personalized recommendations.',
       image: '',
-      backgroundColor: Color(0xFFE67E22),
+      backgroundColor: MyColors.tertiaryColor,
       iconData: Icons.calculate,
     ),
   ];

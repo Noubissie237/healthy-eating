@@ -213,7 +213,7 @@ class _SecurityPageState extends State<SecurityPage> {
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _updatePassword,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: MyColors.secondaryColor,
+                            backgroundColor: MyColors.primaryColor,
                             foregroundColor: MyColors.backgroundColor,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -283,7 +283,7 @@ class _SecurityPageState extends State<SecurityPage> {
             fontSize: 14,
           ),
           floatingLabelStyle: const TextStyle(
-            color: MyColors.secondaryColor,
+            color: MyColors.primaryColor,
             fontWeight: FontWeight.bold,
           ),
           border: OutlineInputBorder(

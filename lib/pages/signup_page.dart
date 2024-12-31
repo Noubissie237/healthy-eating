@@ -237,7 +237,7 @@ class _SignupPageState extends State<SignupPage> {
     return ElevatedButton(
       onPressed: _isLoading ? null : _submitForm,
       style: ElevatedButton.styleFrom(
-        backgroundColor: MyColors.secondaryColor,
+        backgroundColor: MyColors.primaryColor,
         padding: const EdgeInsets.symmetric(
           horizontal: 48.0,
           vertical: 12.0,

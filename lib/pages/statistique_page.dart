@@ -155,7 +155,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
             'Average Weekly Calories',
             '${getAverageWeeklyCalories(meals).toStringAsFixed(1)} kcal',
             Icons.analytics,
-            MyColors.primaryColor,
+            MyColors.secondaryColor,
             fullWidth: true,
           ),
         ],

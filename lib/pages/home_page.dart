@@ -258,7 +258,7 @@ class _HomePage extends State<HomePage> {
                                         fontSize:
                                             MediaQuery.of(context).size.width *
                                                 0.05,
-                                        color: MyColors.secondaryColor,
+                                        color: MyColors.primaryColor,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -287,7 +287,7 @@ class _HomePage extends State<HomePage> {
                                       child: Text(
                                         interpreterIMC(bmi),
                                         style: const TextStyle(
-                                          color: MyColors.secondaryColor,
+                                          color: MyColors.primaryColor,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -598,7 +598,7 @@ class _HomePage extends State<HomePage> {
                           },
                         ),
                         floatingActionButton: FloatingActionButton(
-                          backgroundColor: MyColors.secondaryColor,
+                          backgroundColor: MyColors.primaryColor,
                           child: const Icon(Icons.add),
                           onPressed: () => _showMealDialog(context),
                         ),
@@ -716,7 +716,7 @@ class _HomePage extends State<HomePage> {
                                         children: [
                                           Icon(
                                             Icons.info_outline,
-                                            color: MyColors.secondaryColor,
+                                            color: MyColors.primaryColor,
                                             size: 24,
                                           ),
                                           const SizedBox(width: 12),
@@ -843,7 +843,7 @@ class _HomePage extends State<HomePage> {
                                                   "here",
                                                   style: TextStyle(
                                                     color:
-                                                        MyColors.secondaryColor,
+                                                        MyColors.primaryColor,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
@@ -852,7 +852,7 @@ class _HomePage extends State<HomePage> {
                                                   Icons.arrow_forward,
                                                   size: 16,
                                                   color:
-                                                      MyColors.secondaryColor,
+                                                      MyColors.primaryColor,
                                                 ),
                                               ],
                                             ),
@@ -1177,7 +1177,7 @@ class _HomePage extends State<HomePage> {
       children: [
         Icon(
           icon,
-          color: MyColors.secondaryColor,
+          color: MyColors.primaryColor,
           size: 28,
         ),
         const SizedBox(height: 8),
@@ -1235,7 +1235,7 @@ class _HomePage extends State<HomePage> {
           children: [
             Icon(
               meal == null ? Icons.add_circle : Icons.edit,
-              color: MyColors.secondaryColor,
+              color: MyColors.primaryColor,
               size: 28,
             ),
             const SizedBox(width: 8),
@@ -1260,15 +1260,15 @@ class _HomePage extends State<HomePage> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide:
-                        BorderSide(color: MyColors.secondaryColor, width: 2),
+                        BorderSide(color: MyColors.primaryColor, width: 2),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide:
-                        BorderSide(color: MyColors.secondaryColor, width: 2),
+                        BorderSide(color: MyColors.primaryColor, width: 2),
                   ),
                   prefixIcon: Icon(Icons.restaurant_menu,
-                      color: MyColors.secondaryColor),
+                      color: MyColors.primaryColor),
                 ),
               ),
               const SizedBox(height: 16),
@@ -1280,12 +1280,12 @@ class _HomePage extends State<HomePage> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide:
-                        BorderSide(color: MyColors.secondaryColor, width: 2),
+                        BorderSide(color: MyColors.primaryColor, width: 2),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide:
-                        BorderSide(color: MyColors.secondaryColor, width: 2),
+                        BorderSide(color: MyColors.primaryColor, width: 2),
                   ),
                   prefixIcon:
                       Icon(Icons.local_fire_department, color: MyColors.failed),
@@ -1295,7 +1295,7 @@ class _HomePage extends State<HomePage> {
               const SizedBox(height: 20),
               Container(
                 decoration: BoxDecoration(
-                  border: Border.all(color: MyColors.secondaryColor, width: 2),
+                  border: Border.all(color: MyColors.primaryColor, width: 2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Material(
@@ -1312,7 +1312,7 @@ class _HomePage extends State<HomePage> {
                           return Theme(
                             data: Theme.of(context).copyWith(
                               colorScheme: ColorScheme.light(
-                                primary: MyColors.secondaryColor,
+                                primary: MyColors.primaryColor,
                               ),
                             ),
                             child: child!,
@@ -1327,7 +1327,7 @@ class _HomePage extends State<HomePage> {
                             return Theme(
                               data: Theme.of(context).copyWith(
                                 colorScheme: ColorScheme.light(
-                                  primary: MyColors.secondaryColor,
+                                  primary: MyColors.primaryColor,
                                 ),
                               ),
                               child: child!,
@@ -1352,7 +1352,7 @@ class _HomePage extends State<HomePage> {
                       child: Row(
                         children: [
                           Icon(Icons.calendar_today,
-                              color: MyColors.secondaryColor),
+                              color: MyColors.primaryColor),
                           const SizedBox(width: 8),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1430,7 +1430,7 @@ class _HomePage extends State<HomePage> {
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: MyColors.secondaryColor,
+              backgroundColor: MyColors.primaryColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.0),
               ),
@@ -1520,7 +1520,7 @@ class _HomePage extends State<HomePage> {
               'The meal ${meal.name} was deleted',
               style: const TextStyle(color: Colors.white),
             ),
-            backgroundColor: MyColors.secondaryColor,
+            backgroundColor: MyColors.primaryColor,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),

@@ -17,7 +17,7 @@ class SettingsPage extends StatelessWidget {
           return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(
-                color: MyColors.primaryColor,
+                color: MyColors.secondaryColor,
               ),
             ),
           );
@@ -98,7 +98,7 @@ class SettingsPage extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: MyColors.primaryColor.withOpacity(0.2),
+                color: MyColors.secondaryColor.withOpacity(0.2),
                 width: 3,
               ),
             ),
@@ -149,7 +149,7 @@ class SettingsPage extends StatelessWidget {
               },
               icon: Icons.favorite,
               label: 'Invite Friends',
-              color: MyColors.secondaryColor,
+              color: MyColors.primaryColor,
             ),
           ),
           const SizedBox(width: 16),
@@ -158,7 +158,7 @@ class SettingsPage extends StatelessWidget {
               onPressed: () => lienExterne("https://wa.me/+237690232120"),
               icon: Icons.help_outline,
               label: 'Get Help',
-              color: MyColors.secondaryColor,
+              color: MyColors.primaryColor,
             ),
           ),
         ],
