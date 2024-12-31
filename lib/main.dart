@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:food_app/colors/my_colors.dart';
 import 'package:food_app/database/meal_provider.dart';
 import 'package:food_app/database/user_goal_provider.dart';
+import 'package:food_app/pages/list_meals_page.dart';
 import 'package:food_app/pages/maps_page.dart';
 import 'package:food_app/pages/statistique_page.dart';
 import 'package:provider/provider.dart';
@@ -70,6 +71,7 @@ class MyApp extends StatelessWidget {
         '/account': (context) => const AccountPage(),
         '/security': (context) => const SecurityPage(),
         '/statistic': (context) => const StatisticsPage(),
+        '/list-meal': (context) => const ListMealsPage(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/chat') {

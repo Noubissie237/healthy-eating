@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:food_app/colors/my_colors.dart';
 import 'package:food_app/database/meal_provider.dart';
@@ -21,9 +19,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePage extends State<HomePage> {
-  File? _imageFile;
-  String? _audioPath;
-  bool _isRecording = false;
   bool _isWeight = false;
   bool _isHeight = false;
 
@@ -52,38 +47,159 @@ class _HomePage extends State<HomePage> {
     }
   }
 
-  Future<void> _handlePickImage() async {
-    File? image = await pickImage();
-    if (image != null) {
-      setState(() {
-        _imageFile = image;
-      });
-      print("Chemin de l'image : ${image.path} - image : $_imageFile");
-    }
+  void _showCustomDrawer(BuildContext context) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation1, animation2) => Container(),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(1, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOut,
+          )),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.75,
+                height: double.infinity,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                  ),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: SafeArea(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const CircleAvatar(
+                                radius: 30,
+                                backgroundImage:
+                                    AssetImage('assets/images/default-img.png'),
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Username',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'username@email.com',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        Expanded(
+                          child: ListView(
+                            padding: EdgeInsets.zero,
+                            children: [
+                              _buildDrawerItem(
+                                icon: Icons.history,
+                                title: 'Meal history',
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  Navigator.pushNamed(context, '/list-meal');
+                                },
+                              ),
+                              _buildDrawerItem(
+                                icon: Icons.recommend,
+                                title: 'Recommandations',
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  Navigator.pushNamed(
+                                      context, '/recommendations');
+                                },
+                              ),
+                              _buildDrawerItem(
+                                icon: Icons.person_outline,
+                                title: 'Account',
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  Navigator.pushNamed(context, '/account');
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        _buildDrawerItem(
+                          icon: Icons.settings,
+                          title: 'Paramètres',
+                          onTap: () {
+                            // Gérer les paramètres
+                          },
+                        ),
+                        _buildDrawerItem(
+                          icon: Icons.help_outline,
+                          title: 'Help',
+                          onTap: () {
+                            Navigator.pop(context);
+                            // Afficher la FAQ
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
-  Future<void> _handleRecordAudio() async {
-    if (_isRecording) {
-      String? path = await stopRecording();
-      if (path != null) {
-        setState(() {
-          _audioPath = path;
-          print("$_audioPath");
-          _isRecording = false;
-        });
-        print("Enregistrement terminé : $path");
-      }
-    } else {
-      try {
-        await startRecording();
-        setState(() {
-          _isRecording = true;
-        });
-        print("Enregistrement en cours...");
-      } catch (e) {
-        print("Erreur lors de l'enregistrement : $e");
-      }
-    }
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Row(
+            children: [
+              Icon(icon, size: 24),
+              const SizedBox(width: 16),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -116,29 +232,57 @@ class _HomePage extends State<HomePage> {
                   title: Image.asset('assets/images/logo-secondary.png',
                       width: 100),
                   actions: [
-                    IconButton(
-                      onPressed: _handlePickImage,
-                      icon: const Icon(Icons.camera_alt,
-                          color: MyColors.textColor),
-                    ),
-                    IconButton(
-                      onPressed: _handleRecordAudio,
-                      icon: Icon(
-                        _isRecording ? Icons.mic_off : Icons.mic,
-                        color: MyColors.textColor,
+                    // Avatar de l'utilisateur
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundImage:
+                            AssetImage('assets/images/default-img.png'),
                       ),
                     ),
+
+                    // Bouton d'Help avec FAQ
                     IconButton(
-                      onPressed: () =>
-                          Navigator.pushNamed(context, '/recordings'),
-                      icon: const Icon(Icons.chat, color: MyColors.textColor),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pushNamed(context, '/signup'),
+                      onPressed: () => showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('F.A.Q'),
+                          content: const SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "To find out the number of calories in a food or meal,"
+                                  "you can just go to Google and ask. "
+                                  "e.g: If you have consumed koki and wish to have a "
+                                  "estimate how many calories it contains, simply open"
+                                  "a browser and type in the search bar "
+                                  "“number of calories in a koki dish“.",
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        ),
+                      ),
                       icon: const Icon(
-                        Icons.person_add_alt_rounded,
+                        Icons.help_outline,
                         color: MyColors.textColor,
                       ),
+                      tooltip: 'Help',
+                    ),
+
+                    IconButton(
+                      icon: const Icon(Icons.menu, color: MyColors.textColor),
+                      onPressed: () => _showCustomDrawer(context),
                     ),
                   ],
                 ),
@@ -629,29 +773,57 @@ class _HomePage extends State<HomePage> {
                   title: Image.asset('assets/images/logo-secondary.png',
                       width: 100),
                   actions: [
-                    IconButton(
-                      onPressed: _handlePickImage,
-                      icon: const Icon(Icons.camera_alt,
-                          color: MyColors.textColor),
-                    ),
-                    IconButton(
-                      onPressed: _handleRecordAudio,
-                      icon: Icon(
-                        _isRecording ? Icons.mic_off : Icons.mic,
-                        color: MyColors.textColor,
+                    // Avatar de l'utilisateur
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundImage:
+                            AssetImage('assets/images/default-img.png'),
                       ),
                     ),
+
+                    // Bouton d'Help avec FAQ
                     IconButton(
-                      onPressed: () =>
-                          Navigator.pushNamed(context, '/recordings'),
-                      icon: const Icon(Icons.chat, color: MyColors.textColor),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pushNamed(context, '/signup'),
+                      onPressed: () => showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('F.A.Q'),
+                          content: const SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "To find out the number of calories in a food or meal,"
+                                  "you can just go to Google and ask. "
+                                  "e.g: If you have consumed koki and wish to have a "
+                                  "estimate how many calories it contains, simply open"
+                                  "a browser and type in the search bar "
+                                  "“number of calories in a koki dish“.",
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        ),
+                      ),
                       icon: const Icon(
-                        Icons.person_add_alt_rounded,
+                        Icons.help_outline,
                         color: MyColors.textColor,
                       ),
+                      tooltip: 'Help',
+                    ),
+
+                    IconButton(
+                      icon: const Icon(Icons.menu, color: MyColors.textColor),
+                      onPressed: () => _showCustomDrawer(context),
                     ),
                   ],
                 ),
