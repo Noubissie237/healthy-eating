@@ -206,6 +206,21 @@ class _ConversationPageState extends State<ConversationPage> {
     }
   }
 
+  String _getInitials(String displayName) {
+    if (displayName.isEmpty) return '?';
+
+    final parts = displayName.split(' ');
+    if (parts.length == 1) {
+      // Si un seul mot, prendre les deux premières lettres ou juste la première
+      return displayName.length > 1
+          ? '${displayName[0]}${displayName[1]}'.toUpperCase()
+          : displayName[0].toUpperCase();
+    }
+
+    // Si plusieurs mots, prendre la première lettre du premier et du dernier mot
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -216,8 +231,7 @@ class _ConversationPageState extends State<ConversationPage> {
             CircleAvatar(
                 radius: 28,
                 child: Text(
-                  widget.contactName[0].toUpperCase() +
-                      widget.contactName.split(' ')[1][0],
+                  _getInitials(widget.contactName),
                   style: const TextStyle(fontSize: 20),
                 )),
             const SizedBox(width: 10),
