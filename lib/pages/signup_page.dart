@@ -153,8 +153,8 @@ class _SignupPageState extends State<SignupPage> {
 
   Widget _buildLogo(BuildContext context) {
     return Image.asset(
-      "assets/images/logo.png",
-      width: MediaQuery.of(context).size.width * 0.5,
+      "assets/images/logo-primary.png",
+      width: MediaQuery.of(context).size.width * 0.7,
     );
   }
 

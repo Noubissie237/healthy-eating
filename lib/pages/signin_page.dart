@@ -147,8 +147,8 @@ class _SigninPageState extends State<SigninPage> {
 
   Widget _buildLogo(BuildContext context) {
     return Image.asset(
-      "assets/images/logo.png",
-      width: MediaQuery.of(context).size.width * 0.5,
+      "assets/images/logo-primary.png",
+      width: MediaQuery.of(context).size.width * 0.7,
     );
   }
 

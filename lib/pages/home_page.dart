@@ -110,22 +110,11 @@ class _HomePage extends State<HomePage> {
                 double.parse(userInfo['height']!),
               );
 
-              // if (userInfo['height'] != 'Unknown') {
-              //   _isHeight = true;
-              // } else {
-              //   _isHeight = false;
-              // }
-
-              // if (userInfo['weight'] != 'Unknown') {
-              //   _isWeight = true;
-              // } else {
-              //   _isWeight = false;
-              // }
-
               return Scaffold(
                 appBar: AppBar(
                   backgroundColor: const Color.fromARGB(87, 3, 218, 197),
-                  title: Image.asset('assets/images/logo.png', width: 100),
+                  title: Image.asset('assets/images/logo-secondary.png',
+                      width: 100),
                   actions: [
                     IconButton(
                       onPressed: _handlePickImage,
@@ -357,11 +346,18 @@ class _HomePage extends State<HomePage> {
                                       Expanded(
                                         child: ListView.builder(
                                           padding: const EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 8),
-                                          itemCount: 3,
+                                            horizontal: 16,
+                                            vertical: 8,
+                                          ),
+                                          itemCount: meals.length > 3
+                                              ? 3
+                                              : meals.length,
                                           itemBuilder: (context, index) {
                                             final meal = meals[index];
-                                            final isLastItem = index == 3 - 1;
+                                            final isLastItem = index ==
+                                                (meals.length > 3
+                                                    ? 2
+                                                    : meals.length - 1);
 
                                             return Column(
                                               children: [
@@ -548,7 +544,8 @@ class _HomePage extends State<HomePage> {
                                                       style: ElevatedButton
                                                           .styleFrom(
                                                         backgroundColor:
-                                                            Color.fromRGBO(3,
+                                                            const Color
+                                                                .fromRGBO(3,
                                                                 218, 198, 0.7),
                                                         minimumSize: const Size(
                                                             double.infinity,
@@ -629,7 +626,8 @@ class _HomePage extends State<HomePage> {
               return Scaffold(
                 appBar: AppBar(
                   backgroundColor: const Color.fromARGB(87, 3, 218, 197),
-                  title: Image.asset('assets/images/logo.png', width: 100),
+                  title: Image.asset('assets/images/logo-secondary.png',
+                      width: 100),
                   actions: [
                     IconButton(
                       onPressed: _handlePickImage,
@@ -851,8 +849,7 @@ class _HomePage extends State<HomePage> {
                                                 Icon(
                                                   Icons.arrow_forward,
                                                   size: 16,
-                                                  color:
-                                                      MyColors.primaryColor,
+                                                  color: MyColors.primaryColor,
                                                 ),
                                               ],
                                             ),
@@ -914,13 +911,18 @@ class _HomePage extends State<HomePage> {
                                         child: ListView.builder(
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 16, vertical: 8),
-                                          itemCount: 3,
+                                          itemCount: meals.length < 3
+                                              ? meals.length
+                                              : 3, // Ajuste le nombre d'éléments affichés
                                           itemBuilder: (context, index) {
                                             final meal = meals[index];
-                                            final isLastItem = index == 3 - 1;
+                                            const int visibleItems = 3;
+                                            final isLastItem =
+                                                index == visibleItems - 1;
 
                                             return Column(
                                               children: [
+                                                // Carte de présentation du repas
                                                 Container(
                                                   decoration: BoxDecoration(
                                                     color: Colors.white,
@@ -954,6 +956,7 @@ class _HomePage extends State<HomePage> {
                                                                   .all(16),
                                                           child: Row(
                                                             children: [
+                                                              // Avatar circulaire avec initiale
                                                               Container(
                                                                 width: 60,
                                                                 height: 60,
@@ -1000,6 +1003,7 @@ class _HomePage extends State<HomePage> {
                                                               ),
                                                               const SizedBox(
                                                                   width: 16),
+                                                              // Informations sur le repas
                                                               Expanded(
                                                                 child: Column(
                                                                   crossAxisAlignment:
@@ -1048,6 +1052,7 @@ class _HomePage extends State<HomePage> {
                                                                   ],
                                                                 ),
                                                               ),
+                                                              // Boutons d'édition et suppression
                                                               Row(
                                                                 mainAxisSize:
                                                                     MainAxisSize
@@ -1085,8 +1090,9 @@ class _HomePage extends State<HomePage> {
                                                     ),
                                                   ),
                                                 ),
+                                                // Bouton "See more"
                                                 if (isLastItem &&
-                                                    meals.length > 3)
+                                                    meals.length > visibleItems)
                                                   Padding(
                                                     padding:
                                                         const EdgeInsets.only(
@@ -1104,7 +1110,8 @@ class _HomePage extends State<HomePage> {
                                                       style: ElevatedButton
                                                           .styleFrom(
                                                         backgroundColor:
-                                                            Color.fromRGBO(3,
+                                                            const Color
+                                                                .fromRGBO(3,
                                                                 218, 198, 0.7),
                                                         minimumSize: const Size(
                                                             double.infinity,
@@ -1142,6 +1149,7 @@ class _HomePage extends State<HomePage> {
                                                       ),
                                                     ),
                                                   ),
+                                                // Espacement entre les cartes
                                                 if (!isLastItem)
                                                   const SizedBox(height: 16),
                                               ],
@@ -1154,6 +1162,7 @@ class _HomePage extends State<HomePage> {
                           },
                         ),
                         floatingActionButton: FloatingActionButton(
+                          backgroundColor: MyColors.primaryColor,
                           child: const Icon(Icons.add),
                           onPressed: () => _showMealDialog(context),
                         ),
@@ -1267,8 +1276,8 @@ class _HomePage extends State<HomePage> {
                     borderSide:
                         BorderSide(color: MyColors.primaryColor, width: 2),
                   ),
-                  prefixIcon: Icon(Icons.restaurant_menu,
-                      color: MyColors.primaryColor),
+                  prefixIcon:
+                      Icon(Icons.restaurant_menu, color: MyColors.primaryColor),
                 ),
               ),
               const SizedBox(height: 16),

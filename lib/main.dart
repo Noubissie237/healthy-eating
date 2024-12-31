@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:food_app/colors/my_colors.dart';
 import 'package:food_app/database/meal_provider.dart';
 import 'package:food_app/database/user_goal_provider.dart';
 import 'package:food_app/pages/maps_page.dart';
@@ -250,7 +251,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
               );
             }),
             currentIndex: _selectedIndex,
-            selectedItemColor: Colors.deepPurple,
+            selectedItemColor: MyColors.secondaryColor,
             unselectedItemColor: Colors.grey,
             backgroundColor: Colors.white,
             elevation: 0,
