@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:food_app/colors/my_colors.dart';
 import 'package:food_app/database/database_helper.dart';
 import 'package:food_app/models/chat.dart';
+import 'package:food_app/models/users.dart';
 import 'package:food_app/pages/conversation_page.dart';
 import 'package:food_app/utils/utils.dart';
 import 'package:share_plus/share_plus.dart';
@@ -40,6 +41,20 @@ class _ChatPageState extends State<ChatPage> {
         _dbHelper.getConversations(),
         _dbHelper.getUsers(),
       ]);
+
+      // Debug print
+      print("Loaded conversations: ${results[0].length}");
+      print("Loaded users: ${results[1].length}");
+
+      // Pour chaque conversation, affichons les participants
+      for (var conv in results[0] as List<Conversation>) {
+        print("Conversation ${conv.id} participants: ${conv.participantIds}");
+      }
+
+      // Pour chaque utilisateur, affichons l'ID et le nom
+      for (var user in results[1] as List<Users>) {
+        print("User ${user.id}: ${user.fullname}");
+      }
 
       setState(() {
         _conversations = results[0] as List<Conversation>;
@@ -331,38 +346,40 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  // Gardez les méthodes existantes _findUserForConversation, _buildLastMessagePreview, et _formatLastMessageTime inchangées
   Users? _findUserForConversation(Conversation conversation) {
-    print("Début _findUserForConversation");
-    print("Est-ce un groupe ? ${conversation.isGroup}");
-    print("Participants IDs: ${conversation.participantIds}");
-    print("Current user ID: ${widget.currentUserId}");
+    if (conversation.isGroup) {
+      return null;
+    }
 
-    if (conversation.isGroup) return null;
     if (conversation.participantIds.isEmpty) {
-      print("Liste des participants vide");
+      print(
+          "Warning: Empty participants list for conversation ${conversation.id}");
       return null;
     }
 
-    String? otherUserId;
-    try {
-      otherUserId = conversation.participantIds
-          .firstWhere((id) => id != widget.currentUserId);
-      print("ID de l'autre participant trouvé: $otherUserId");
-    } catch (e) {
-      print('Aucun autre participant trouvé dans la conversation: $e');
-      return null;
-    }
+    // Si on n'a qu'un seul participant, on le considère comme l'autre utilisateur
+    String otherUserId = conversation.participantIds.first.toString();
 
+    print("Looking for user with ID: $otherUserId");
     print(
-        "Liste des utilisateurs disponibles: ${_users.map((u) => '${u.id}: ${u.fullname}').join(', ')}");
+        "Available users: ${_users.map((u) => '${u.id}: ${u.fullname}').join(', ')}");
 
     try {
-      final user = _users.firstWhere((user) => user.id == otherUserId);
-      print("Utilisateur trouvé: ${user.fullname}");
+      final user = _users.firstWhere(
+        (user) => user.id.toString() == otherUserId,
+        orElse: () {
+          print("No user found with ID: $otherUserId");
+          return Users(
+            id: int.parse(otherUserId),
+            fullname: "User $otherUserId",
+            email: '',
+            password: '',
+          );
+        },
+      );
       return user;
     } catch (e) {
-      print('Utilisateur non trouvé pour l\'ID: $otherUserId');
+      print('Error finding user: $e');
       return null;
     }
   }
@@ -428,23 +445,4 @@ class _ChatPageState extends State<ChatPage> {
       return 'Now';
     }
   }
-}
-
-// Ajout de la classe Users si elle n'existe pas déjà
-class Users {
-  final String id;
-  final String fullname;
-  final String email;
-  final String password;
-  final double height;
-  final double weight;
-
-  Users({
-    required this.id,
-    required this.fullname,
-    required this.email,
-    required this.password,
-    required this.height,
-    required this.weight,
-  });
 }

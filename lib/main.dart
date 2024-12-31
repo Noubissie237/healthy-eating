@@ -164,7 +164,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         final dbHelper = DatabaseHelper();
         final userData = await dbHelper.getUserByEmail(email);
 
-        return userData?['id'] ?? '';
+        return userData?['id'].toString() ?? '';
       }
     } catch (e) {
       debugPrint('Erreur lors de la récupération de l\'ID utilisateur: $e');

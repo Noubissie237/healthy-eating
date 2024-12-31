@@ -10,14 +10,13 @@ class ConversationPage extends StatefulWidget {
   final String currentUserId; // ID de l'utilisateur actuel
   final String receiverId;
 
-  const ConversationPage({
-    super.key,
-    required this.contactName,
-    required this.avatarUrl,
-    required this.conversationId,
-    required this.currentUserId,
-    required this.receiverId
-  });
+  const ConversationPage(
+      {super.key,
+      required this.contactName,
+      required this.avatarUrl,
+      required this.conversationId,
+      required this.currentUserId,
+      required this.receiverId});
 
   @override
   State<ConversationPage> createState() => _ConversationPageState();

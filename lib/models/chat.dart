@@ -134,7 +134,6 @@ class Conversation {
       'last_message_type': lastMessageType?.toString(),
       'is_pinned': isPinned ? 1 : 0,
       'is_muted': isMuted ? 1 : 0,
-      // Ajout des nouveaux champs dans le map
       'unread_count': unreadCount,
       'last_message_sender': lastMessageSender,
     };
@@ -157,7 +156,6 @@ class Conversation {
           : null,
       isPinned: map['is_pinned'] == 1,
       isMuted: map['is_muted'] == 1,
-      // Récupération des nouveaux champs depuis le map
       unreadCount: map['unread_count'] ?? 0,
       lastMessageSender: map['last_message_sender'],
     );
