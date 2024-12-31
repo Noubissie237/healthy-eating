@@ -43,8 +43,8 @@ class _ChatPageState extends State<ChatPage> {
       ]);
 
       // Debug print
-      print("Loaded conversations: ${results[0].length}");
-      print("Loaded users: ${results[1].length}");
+      print("Loaded conversations: ${results[0]!.length}");
+      print("Loaded users: ${results[1]!.length}");
 
       // Pour chaque conversation, affichons les participants
       for (var conv in results[0] as List<Conversation>) {
@@ -236,7 +236,7 @@ class _ChatPageState extends State<ChatPage> {
   ) {
     final bool isGroup = conversation.isGroup;
     final String displayName =
-        isGroup ? conversation.name : (user?.fullname ?? 'Utilisateur inconnu');
+        isGroup ? conversation.name : (user?.fullname ?? 'You(👮‍♂️)');
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -347,33 +347,53 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Users? _findUserForConversation(Conversation conversation) {
+    // Si c'est un groupe, pas besoin de chercher un utilisateur
     if (conversation.isGroup) {
       return null;
     }
 
+    // Protection contre les listes vides
     if (conversation.participantIds.isEmpty) {
       print(
           "Warning: Empty participants list for conversation ${conversation.id}");
       return null;
     }
 
-    // Si on n'a qu'un seul participant, on le considère comme l'autre utilisateur
-    String otherUserId = conversation.participantIds.first.toString();
+    // Trouvons l'ID de l'autre participant
+    String? otherUserId;
+    try {
+      // Vérifions d'abord si la liste contient l'ID de l'utilisateur courant
+      if (!conversation.participantIds.contains(widget.currentUserId)) {
+        print(
+            "Warning: Current user ${widget.currentUserId} not in participants");
+        // Dans ce cas, prenons simplement le premier participant
+        otherUserId = conversation.participantIds.first;
+      } else {
+        otherUserId = conversation.participantIds
+            .firstWhere((id) => id != widget.currentUserId);
+      }
+    } catch (e) {
+      print('Error finding other participant: $e');
+      return null;
+    }
 
+    // Debuggons les utilisateurs disponibles
     print("Looking for user with ID: $otherUserId");
     print(
         "Available users: ${_users.map((u) => '${u.id}: ${u.fullname}').join(', ')}");
 
+    // Cherchons l'utilisateur correspondant
     try {
       final user = _users.firstWhere(
         (user) => user.id.toString() == otherUserId,
         orElse: () {
           print("No user found with ID: $otherUserId");
           return Users(
-            id: int.parse(otherUserId),
-            fullname: "User $otherUserId",
-            email: '',
-            password: '',
+            // Remplacez avec votre constructeur Users réel
+            id: int.parse(otherUserId!),
+            fullname: "User $otherUserId", email: '',
+            password: '', // Fallback plus informatif
+            // Ajoutez d'autres champs requis
           );
         },
       );

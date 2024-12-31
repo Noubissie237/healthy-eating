@@ -49,33 +49,34 @@ class _ConversationPageState extends State<ConversationPage> {
     }
   }
 
-  Future<void> _initializeConversation() async {
-    try {
-      // Vérifier si la conversation existe déjà
-      final conversations = await _dbHelper.getConversations();
-      final existingConversation = conversations
-          .where((conv) => conv.id == widget.conversationId)
-          .isEmpty;
+Future<void> _initializeConversation() async {
+  try {
+    // Vérifier si la conversation existe déjà
+    final conversations = await _dbHelper.getConversations();
+    final existingConversation = conversations?.firstWhere(
+      (conv) => conv.id == widget.conversationId,
+      //orElse: () => null,
+    );
 
-      if (existingConversation) {
-        // Créer une nouvelle conversation si elle n'existe pas
-        final newConversation = Conversation(
-          id: widget.conversationId,
-          name: widget.contactName,
-          avatarUrl: widget.avatarUrl,
-          isGroup: false,
-          participantIds: [widget.currentUserId],
-          createdAt: DateTime.now(),
-          lastMessageAt: DateTime.now(),
-          lastMessageContent: null,
-          lastMessageType: null,
-        );
-        await _dbHelper.insertConversation(newConversation);
-      }
-    } catch (e) {
-      debugPrint('Erreur lors de l_initialisation de la conversation: $e');
+    if (existingConversation == null) {
+      // Créer une nouvelle conversation si elle n'existe pas
+      final newConversation = Conversation(
+        id: widget.conversationId,
+        name: widget.contactName,
+        avatarUrl: widget.avatarUrl,
+        isGroup: false,
+        participantIds: [widget.currentUserId, widget.receiverId],
+        createdAt: DateTime.now(),
+        lastMessageAt: DateTime.now(),
+        lastMessageContent: null,
+        lastMessageType: null,
+      );
+      await _dbHelper.insertConversation(newConversation);
     }
+  } catch (e) {
+    debugPrint('Erreur lors de l_initialisation de la conversation: $e');
   }
+}
 
   Future<void> _loadMessages() async {
     setState(() => isLoading = true);
@@ -141,19 +142,19 @@ class _ConversationPageState extends State<ConversationPage> {
       });
 
       // Mettre à jour la conversation avec le dernier message
-      final updatedConversation = Conversation(
-        id: widget.conversationId,
-        name: widget.contactName,
-        avatarUrl: widget.avatarUrl,
-        isGroup: false,
-        participantIds: [widget.currentUserId],
-        createdAt: DateTime.now(),
-        lastMessageAt: DateTime.now(),
-        lastMessageContent: content,
-        lastMessageType: type,
-        lastMessageSender: widget.currentUserId,
-        unreadCount: 0,
-      );
+final updatedConversation = Conversation(
+  id: widget.conversationId,
+  name: widget.contactName,
+  avatarUrl: widget.avatarUrl,
+  isGroup: false,
+  participantIds: [widget.currentUserId, widget.receiverId], // Correction ici
+  createdAt: DateTime.now(),
+  lastMessageAt: DateTime.now(),
+  lastMessageContent: content,
+  lastMessageType: type,
+  lastMessageSender: widget.currentUserId,
+  unreadCount: 0,
+);
 
       // Mettre à jour la conversation
       await _dbHelper.updateConversation(updatedConversation);

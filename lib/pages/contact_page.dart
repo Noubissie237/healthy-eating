@@ -40,37 +40,41 @@ class _ContactPageState extends State<ContactPage> {
     });
   }
 
-  void _navigateToConversation(BuildContext context, Users user) async {
-    // Générer un ID de conversation unique
-    final conversationId = const Uuid().v4();
+void _navigateToConversation(BuildContext context, Users user) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('user_token');
+  final Map<String, dynamic> decodedToken;
+  String currentUserId = '';
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('user_token');
-    final Map<String, dynamic> decodedToken;
-    String userID = '';
-
-    if (token != null) {
-      decodedToken = jsonDecode(token);
-      userID = decodedToken['id'].toString();
-    }
-
-    // Vous devrez adapter cette partie en fonction de votre système d'authentification
-    final currentUserId = userID; // Remplacez par l'ID de l'utilisateur actuel
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ConversationPage(
-          contactName: user.fullname,
-          avatarUrl:
-              "https://ui-avatars.com/api/?name=${Uri.encodeComponent(user.fullname)}", // Utilise un service d'avatar par défaut
-          conversationId: conversationId,
-          currentUserId: currentUserId,
-          receiverId: user.id!.toString(),
-        ),
-      ),
-    );
+  if (token != null) {
+    decodedToken = jsonDecode(token);
+    currentUserId = decodedToken['id'].toString();
   }
+
+  // Chercher une conversation existante
+  String? existingConversationId = await _databaseHelper.findExistingConversationId(
+    currentUserId,
+    user.id.toString()
+  );
+
+  // Utiliser l'ID existant ou en créer un nouveau
+  final conversationId = existingConversationId ?? const Uuid().v4();
+
+  if (!mounted) return;
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ConversationPage(
+        contactName: user.fullname,
+        avatarUrl: "https://ui-avatars.com/api/?name=${Uri.encodeComponent(user.fullname)}",
+        conversationId: conversationId,
+        currentUserId: currentUserId,
+        receiverId: user.id.toString(),
+      ),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {

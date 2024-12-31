@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:food_app/models/chat.dart';
 import 'package:sqflite/sqflite.dart';
@@ -227,14 +229,25 @@ class DatabaseHelper with ChangeNotifier {
     );
   }
 
-  Future<List<Conversation>> getConversations() async {
+Future<List<Conversation>?> getConversations() async {
+  try {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db!.query(
+    final List<Map<String, dynamic>>? maps = await db?.query(
       'conversations',
       orderBy: 'last_message_at DESC',
     );
+
+    if (maps == null || maps.isEmpty) {
+      return null; // Retourne null si aucune conversation n'est trouvée
+    }
+
     return List.generate(maps.length, (i) => Conversation.fromMap(maps[i]));
+  } catch (e) {
+    // Gérer l'erreur (log, rethrow, etc.)
+    print('Error fetching conversations: $e');
+    return null; // Retourne null en cas d'erreur
   }
+}
 
   Future<void> updateConversation(Conversation conversation) async {
     final db = await database;
@@ -314,5 +327,19 @@ class DatabaseHelper with ChangeNotifier {
       whereArgs: [conversationId],
     );
   }
-  
+
+  Future<String?> findExistingConversationId(
+      String user1Id, String user2Id) async {
+    final db = await database;
+    final conversations = await db!.query('conversations');
+
+    for (var conv in conversations) {
+      List<String> participants =
+          List<String>.from(json.decode(conv['participant_ids'] as String));
+      if (participants.contains(user1Id) && participants.contains(user2Id)) {
+        return conv['id'] as String;
+      }
+    }
+    return null;
+  }
 }
