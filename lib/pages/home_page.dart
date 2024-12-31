@@ -131,7 +131,7 @@ class _HomePage extends State<HomePage> {
                                 onTap: () {
                                   Navigator.pop(context);
                                   Navigator.pushNamed(
-                                      context, '/recommendations');
+                                      context, '/recommandation');
                                 },
                               ),
                               _buildDrawerItem(
@@ -904,7 +904,7 @@ class _HomePage extends State<HomePage> {
                                       ),
                                       const SizedBox(height: 12),
                                       Text(
-                                        "This information will allow us to offer you recommendations tailored to your profile. It's quick and easy! Ready to start your journey to better health?",
+                                        "This information will allow us to offer you recommandation tailored to your profile. It's quick and easy! Ready to start your journey to better health?",
                                         style: TextStyle(
                                           fontSize: 14,
                                           color: const Color.fromRGBO(
