@@ -7,6 +7,7 @@ import 'package:food_app/pages/list_meals_page.dart';
 import 'package:food_app/utils/utils.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
@@ -48,14 +49,59 @@ class _HomePage extends State<HomePage> {
   }
 
   void _showCustomDrawer(BuildContext context) {
+    // Couleurs personnalisées
+    const primaryColor = MyColors.secondaryColor;
+    const secondaryColor = Color(0xFF2A2A2A); // Gris foncé
+    final subtleColor = Colors.grey[300]; // Gris clair pour les séparateurs
+
+    // Modèle de données pour les items du drawer avec icônes personnalisées
+    final List<({IconData icon, String title, VoidCallback onTap})> menuItems =
+        [
+      (
+        icon: Icons
+            .restaurant_rounded, // Icône plus spécifique pour l'historique des repas
+        title: 'Meal history',
+        onTap: () {
+          Navigator.pop(context);
+          Navigator.pushNamed(context, '/list-meal');
+        },
+      ),
+      (
+        icon: Icons
+            .favorite_rounded, // Icône plus attrayante pour les recommandations
+        title: 'Recommendations',
+        onTap: () {
+          Navigator.pop(context);
+          Navigator.pushNamed(context, '/recommandation');
+        },
+      ),
+      (
+        icon: Icons.account_circle_rounded, // Icône de profil plus moderne
+        title: 'Profile',
+        onTap: () {
+          Navigator.pop(context);
+          Navigator.pushNamed(context, '/account');
+        },
+      ),
+      (
+        icon: Icons.share_rounded, // Version arrondie de l'icône de partage
+        title: 'Share app',
+        onTap: () {
+          Share.share(
+            "Download the Health Food App at:\n\nhttps://www.simpletraining.online/app-release.apk",
+          );
+        },
+      ),
+    ];
+
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: '',
-      barrierColor: Colors.black54,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withOpacity(0.6), // Fond plus sombre
       transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, animation1, animation2) => Container(),
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
+      pageBuilder: (_, __, ___) => const SizedBox.shrink(),
+      transitionBuilder: (context, animation, secondaryAnimation, _) {
         return SlideTransition(
           position: Tween<Offset>(
             begin: const Offset(1, 0),
@@ -69,100 +115,161 @@ class _HomePage extends State<HomePage> {
             child: Material(
               color: Colors.transparent,
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.75,
+                width: MediaQuery.of(context).size.width * 0.8,
                 height: double.infinity,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    bottomLeft: Radius.circular(16),
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(24), // Bordure plus prononcée
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 20,
+                      offset: const Offset(-5, 0),
+                    ),
+                  ],
                 ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: SafeArea(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const CircleAvatar(
-                                radius: 30,
+                child: SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // En-tête avec profil utilisateur
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              primaryColor,
+                              primaryColor.withOpacity(0.8)
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(24),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(3),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border:
+                                    Border.all(color: Colors.white, width: 2),
+                              ),
+                              child: const CircleAvatar(
+                                radius: 35,
                                 backgroundImage:
                                     AssetImage('assets/images/default-img.png'),
                               ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Username',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Username',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'username@email.com',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Liste des items du menu
+                      Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: menuItems.length,
+                          itemBuilder: (context, index) {
+                            final item = menuItems[index];
+                            return Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: item.onTap,
+                                splashColor: primaryColor.withOpacity(0.1),
+                                highlightColor: primaryColor.withOpacity(0.05),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 16,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        item.icon,
+                                        size: 26,
+                                        color: primaryColor,
+                                      ),
+                                      const SizedBox(width: 20),
+                                      Text(
+                                        item.title,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: secondaryColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              Text(
-                                'username@email.com',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
+                            );
+                          },
+                        ),
+                      ),
+                      Divider(height: 1, color: subtleColor),
+                      // Bouton de déconnexion
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            // TODO: Implémenter la logique de déconnexion
+                          },
+                          splashColor: Colors.red.withOpacity(0.1),
+                          highlightColor: Colors.red.withOpacity(0.05),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 16,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons
+                                      .logout_rounded, // Icône de déconnexion plus moderne
+                                  size: 26,
+                                  color: Color(
+                                      0xFFFF3B30), // Rouge iOS pour déconnexion
                                 ),
-                              ),
-                            ],
+                                SizedBox(width: 20),
+                                Text(
+                                  'Log out',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFFFF3B30),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        const Divider(height: 1),
-                        Expanded(
-                          child: ListView(
-                            padding: EdgeInsets.zero,
-                            children: [
-                              _buildDrawerItem(
-                                icon: Icons.history,
-                                title: 'Meal history',
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  Navigator.pushNamed(context, '/list-meal');
-                                },
-                              ),
-                              _buildDrawerItem(
-                                icon: Icons.recommend,
-                                title: 'Recommandations',
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  Navigator.pushNamed(
-                                      context, '/recommandation');
-                                },
-                              ),
-                              _buildDrawerItem(
-                                icon: Icons.person_outline,
-                                title: 'Account',
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  Navigator.pushNamed(context, '/account');
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Divider(height: 1),
-                        _buildDrawerItem(
-                          icon: Icons.settings,
-                          title: 'Paramètres',
-                          onTap: () {
-                            // Gérer les paramètres
-                          },
-                        ),
-                        _buildDrawerItem(
-                          icon: Icons.help_outline,
-                          title: 'Help',
-                          onTap: () {
-                            Navigator.pop(context);
-                            // Afficher la FAQ
-                          },
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                   ),
                 ),
               ),
@@ -170,35 +277,6 @@ class _HomePage extends State<HomePage> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildDrawerItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Row(
-            children: [
-              Icon(icon, size: 24),
-              const SizedBox(width: 16),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
