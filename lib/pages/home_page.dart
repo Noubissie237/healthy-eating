@@ -566,7 +566,7 @@ class _HomePage extends State<HomePage> {
                                                                 .center,
                                                         children: [
                                                           Text(
-                                                            'Voir plus',
+                                                            'See more',
                                                             style: TextStyle(
                                                               fontSize: 16,
                                                               fontWeight:
@@ -1122,7 +1122,7 @@ class _HomePage extends State<HomePage> {
                                                                 .center,
                                                         children: [
                                                           Text(
-                                                            'Voir plus',
+                                                            'See more',
                                                             style: TextStyle(
                                                               fontSize: 16,
                                                               fontWeight:
