@@ -49,34 +49,35 @@ class _ConversationPageState extends State<ConversationPage> {
     }
   }
 
-Future<void> _initializeConversation() async {
-  try {
-    // Vérifier si la conversation existe déjà
-    final conversations = await _dbHelper.getConversations();
-    final existingConversation = conversations?.firstWhere(
-      (conv) => conv.id == widget.conversationId,
-      //orElse: () => null,
-    );
-
-    if (existingConversation == null) {
-      // Créer une nouvelle conversation si elle n'existe pas
-      final newConversation = Conversation(
-        id: widget.conversationId,
-        name: widget.contactName,
-        avatarUrl: widget.avatarUrl,
-        isGroup: false,
-        participantIds: [widget.currentUserId, widget.receiverId],
-        createdAt: DateTime.now(),
-        lastMessageAt: DateTime.now(),
-        lastMessageContent: null,
-        lastMessageType: null,
+  Future<void> _initializeConversation() async {
+    try {
+      // Vérifier si la conversation existe déjà
+      final conversations = await _dbHelper.getConversations();
+      final existingConversation = conversations?.firstWhere(
+        (conv) => conv.id == widget.conversationId,
+        // Correction ici : au lieu de retourner null, on utilise orElse correctement
+        orElse: () => throw StateError('No conversation found'),
       );
-      await _dbHelper.insertConversation(newConversation);
+
+      if (existingConversation == null) {
+        // Créer une nouvelle conversation
+        final newConversation = Conversation(
+          id: widget.conversationId,
+          name: widget.contactName,
+          avatarUrl: widget.avatarUrl,
+          isGroup: false,
+          participantIds: [widget.currentUserId, widget.receiverId],
+          createdAt: DateTime.now(),
+          lastMessageAt: DateTime.now(),
+          lastMessageContent: null,
+          lastMessageType: null,
+        );
+        await _dbHelper.insertConversation(newConversation);
+      }
+    } catch (e) {
+      debugPrint('Erreur lors de l_initialisation de la conversation: $e');
     }
-  } catch (e) {
-    debugPrint('Erreur lors de l_initialisation de la conversation: $e');
   }
-}
 
   Future<void> _loadMessages() async {
     setState(() => isLoading = true);
@@ -142,19 +143,22 @@ Future<void> _initializeConversation() async {
       });
 
       // Mettre à jour la conversation avec le dernier message
-final updatedConversation = Conversation(
-  id: widget.conversationId,
-  name: widget.contactName,
-  avatarUrl: widget.avatarUrl,
-  isGroup: false,
-  participantIds: [widget.currentUserId, widget.receiverId], // Correction ici
-  createdAt: DateTime.now(),
-  lastMessageAt: DateTime.now(),
-  lastMessageContent: content,
-  lastMessageType: type,
-  lastMessageSender: widget.currentUserId,
-  unreadCount: 0,
-);
+      final updatedConversation = Conversation(
+        id: widget.conversationId,
+        name: widget.contactName,
+        avatarUrl: widget.avatarUrl,
+        isGroup: false,
+        participantIds: [
+          widget.currentUserId,
+          widget.receiverId
+        ], // Correction ici
+        createdAt: DateTime.now(),
+        lastMessageAt: DateTime.now(),
+        lastMessageContent: content,
+        lastMessageType: type,
+        lastMessageSender: widget.currentUserId,
+        unreadCount: 0,
+      );
 
       // Mettre à jour la conversation
       await _dbHelper.updateConversation(updatedConversation);
@@ -209,10 +213,12 @@ final updatedConversation = Conversation(
         leadingWidth: 40,
         title: Row(
           children: [
-            CircleAvatar(
-              backgroundImage: NetworkImage(widget.avatarUrl),
-              radius: 20,
-            ),
+          CircleAvatar(
+              radius: 28,
+              child: Text(
+                widget.contactName[0].toUpperCase()+widget.contactName.split(' ')[1][0],
+                style: const TextStyle(fontSize: 20),
+              )),
             const SizedBox(width: 10),
             Expanded(
               child: Column(

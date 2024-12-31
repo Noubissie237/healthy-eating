@@ -243,17 +243,11 @@ class _ChatPageState extends State<ChatPage> {
       leading: Stack(
         children: [
           CircleAvatar(
-            radius: 28,
-            backgroundImage: conversation.avatarUrl != null
-                ? NetworkImage(conversation.avatarUrl!)
-                : null,
-            child: conversation.avatarUrl == null
-                ? Text(
-                    displayName[0].toUpperCase(),
-                    style: const TextStyle(fontSize: 20),
-                  )
-                : null,
-          ),
+              radius: 28,
+              child: Text(
+                displayName[0].toUpperCase()+displayName.split(' ')[1][0],
+                style: const TextStyle(fontSize: 20),
+              )),
           if (_isSelectionMode)
             Positioned(
               right: 0,
@@ -329,6 +323,12 @@ class _ChatPageState extends State<ChatPage> {
         if (_isSelectionMode) {
           _onTapInSelectionMode(conversation.id);
         } else {
+          // Trouver l'autre participant
+          final otherUserId = conversation.participantIds.firstWhere(
+            (id) => id != widget.currentUserId,
+            orElse: () => '',
+          );
+
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -337,7 +337,7 @@ class _ChatPageState extends State<ChatPage> {
                 avatarUrl: conversation.avatarUrl ?? '',
                 conversationId: conversation.id,
                 currentUserId: widget.currentUserId,
-                receiverId: '',
+                receiverId: otherUserId,
               ),
             ),
           );
