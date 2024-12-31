@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
+import 'package:food_app/database/meal_provider.dart';
+import 'package:food_app/database/user_goal_provider.dart';
+import 'package:food_app/models/meal.dart';
 import 'package:intl/intl.dart';
 import 'package:food_app/colors/my_colors.dart';
+import 'package:provider/provider.dart';
 
 class StatisticsPage extends StatefulWidget {
   const StatisticsPage({super.key});
@@ -11,145 +14,19 @@ class StatisticsPage extends StatefulWidget {
 }
 
 class _StatisticsPageState extends State<StatisticsPage> {
-  String selectedGoal = 'Stay Fit';
-  final Random random = Random();
-  final dailyCalorieGoal = 2000; // Exemple de valeur
-  DateTime selectedDate = DateTime.now();
+  late DateTime selectedDate;
 
-  // Simuler des données aléatoires pour les statistiques
-  int getDailyCalories() => random.nextInt(2500) + 500;
-  int getWeeklyCalories() => random.nextInt(15000) + 5000;
-  int getMonthlyCalories() => random.nextInt(60000) + 20000;
-  int getYearlyCalories() => random.nextInt(700000) + 200000;
-  double getAverageWeeklyCalories() => (random.nextInt(2000) + 1500).toDouble();
-
-  @override
-  Widget build(BuildContext context) {
-    final dailyCalories = getDailyCalories();
-
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        title: const Text(
-          'My Statistics',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildGoalSection(),
-            const SizedBox(height: 20),
-            _buildDateSelector(),
-            const SizedBox(height: 20),
-            if (dailyCalories > dailyCalorieGoal) _buildCalorieAlert(),
-            _buildStatisticsCards(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGoalSection() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Your Goal',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _buildGoalOption(
-                'Weight Loss',
-                Icons.trending_down,
-                Colors.red,
-              ),
-              const SizedBox(width: 12),
-              _buildGoalOption(
-                'Muscle Gain',
-                Icons.fitness_center,
-                Colors.blue,
-              ),
-              const SizedBox(width: 12),
-              _buildGoalOption(
-                'Stay Fit',
-                Icons.favorite,
-                Colors.green,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGoalOption(String goal, IconData icon, Color color) {
-    final isSelected = selectedGoal == goal;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => selectedGoal = goal),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.1) : Colors.grey[100],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? color : Colors.transparent,
-              width: 2,
-            ),
-          ),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? color : Colors.grey,
-                size: 24,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                goal,
-                style: TextStyle(
-                  color: isSelected ? color : Colors.grey,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  fontSize: 12,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  int getDailyCalorieGoal(String goal) {
+    switch (goal) {
+      case 'Weight Loss':
+        return 1800; // Déficit calorique pour la perte de poids
+      case 'Muscle Gain':
+        return 2500; // Surplus calorique pour la prise de muscle
+      case 'Stay Fit':
+        return 2000; // Maintien du poids
+      default:
+        return 2000;
+    }
   }
 
   Widget _buildDateSelector() {
@@ -197,7 +74,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
     );
   }
 
-  Widget _buildCalorieAlert() {
+  Widget _buildCalorieAlert(String currentGoal) {
+    final goalCalories = getDailyCalorieGoal(currentGoal);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
@@ -212,7 +90,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'You\'ve exceeded your daily calorie goal of ${dailyCalorieGoal}kcal',
+              'You\'ve exceeded your daily calorie goal of ${goalCalories}kcal',
               style: TextStyle(
                 color: Colors.red[700],
                 fontWeight: FontWeight.w500,
@@ -224,7 +102,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     );
   }
 
-  Widget _buildStatisticsCards() {
+  Widget _buildStatisticsCards(List<Meal> meals) {
     return Container(
       margin: const EdgeInsets.all(16),
       child: Column(
@@ -234,7 +112,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
               Expanded(
                 child: _buildStatCard(
                   'Daily Calories',
-                  '${getDailyCalories()} kcal',
+                  '${getDailyCalories(meals)} kcal',
                   Icons.today,
                   Colors.blue,
                 ),
@@ -243,7 +121,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
               Expanded(
                 child: _buildStatCard(
                   'Weekly Calories',
-                  '${getWeeklyCalories()} kcal',
+                  '${getWeeklyCalories(meals)} kcal',
                   Icons.view_week,
                   Colors.green,
                 ),
@@ -256,7 +134,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
               Expanded(
                 child: _buildStatCard(
                   'Monthly Calories',
-                  '${getMonthlyCalories()} kcal',
+                  '${getMonthlyCalories(meals)} kcal',
                   Icons.calendar_month,
                   Colors.orange,
                 ),
@@ -265,7 +143,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
               Expanded(
                 child: _buildStatCard(
                   'Yearly Calories',
-                  '${getYearlyCalories()} kcal',
+                  '${getYearlyCalories(meals)} kcal',
                   Icons.calendar_today,
                   Colors.purple,
                 ),
@@ -275,7 +153,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           const SizedBox(height: 16),
           _buildStatCard(
             'Average Weekly Calories',
-            '${getAverageWeeklyCalories().toStringAsFixed(1)} kcal',
+            '${getAverageWeeklyCalories(meals).toStringAsFixed(1)} kcal',
             Icons.analytics,
             MyColors.primaryColor,
             fullWidth: true,
@@ -339,6 +217,214 @@ class _StatisticsPageState extends State<StatisticsPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    selectedDate = DateTime.now();
+    // Charger les repas au démarrage
+    Provider.of<MealProvider>(context, listen: false).loadMeals();
+  }
+
+  bool isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
+
+  // Calcul des vraies calories quotidiennes
+  int getDailyCalories(List<Meal> meals) {
+    return meals
+        .where((meal) => isSameDay(meal.consumptionDateTime, selectedDate))
+        .fold(0, (sum, meal) => sum + meal.calories);
+  }
+
+  // Calcul des calories hebdomadaires
+  int getWeeklyCalories(List<Meal> meals) {
+    final weekStart =
+        selectedDate.subtract(Duration(days: selectedDate.weekday - 1));
+    final weekEnd = weekStart.add(const Duration(days: 7));
+
+    return meals
+        .where((meal) =>
+            meal.consumptionDateTime.isAfter(weekStart) &&
+            meal.consumptionDateTime.isBefore(weekEnd))
+        .fold(0, (sum, meal) => sum + meal.calories);
+  }
+
+  // Calcul des calories mensuelles
+  int getMonthlyCalories(List<Meal> meals) {
+    return meals
+        .where((meal) =>
+            meal.consumptionDateTime.month == selectedDate.month &&
+            meal.consumptionDateTime.year == selectedDate.year)
+        .fold(0, (sum, meal) => sum + meal.calories);
+  }
+
+  // Calcul des calories annuelles
+  int getYearlyCalories(List<Meal> meals) {
+    return meals
+        .where((meal) => meal.consumptionDateTime.year == selectedDate.year)
+        .fold(0, (sum, meal) => sum + meal.calories);
+  }
+
+  // Calcul de la moyenne hebdomadaire
+  double getAverageWeeklyCalories(List<Meal> meals) {
+    final now = DateTime.now();
+    final startOfYear = DateTime(now.year);
+    final weeks = now.difference(startOfYear).inDays / 7;
+
+    final totalCalories = getYearlyCalories(meals);
+    return totalCalories / weeks;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer2<MealProvider, UserGoalProvider>(
+        builder: (context, mealProvider, goalProvider, child) {
+      final meals = mealProvider.meals;
+      final dailyCalories = getDailyCalories(meals);
+
+      return Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.white,
+          title: const Text(
+            'My Statistics',
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildGoalSection(),
+              const SizedBox(height: 20),
+              _buildDateSelector(),
+              const SizedBox(height: 20),
+              if (dailyCalories > getDailyCalorieGoal(goalProvider.currentGoal))
+                _buildCalorieAlert(goalProvider.currentGoal),
+              _buildStatisticsCards(meals),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildGoalSection() {
+    return Consumer<UserGoalProvider>(builder: (context, goalProvider, child) {
+      return Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Your Goal',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                _buildGoalOption(
+                  context,
+                  goalProvider,
+                  'Weight Loss',
+                  Icons.trending_down,
+                  Colors.red,
+                ),
+                const SizedBox(width: 12),
+                _buildGoalOption(
+                  context,
+                  goalProvider,
+                  'Muscle Gain',
+                  Icons.fitness_center,
+                  Colors.blue,
+                ),
+                const SizedBox(width: 12),
+                _buildGoalOption(
+                  context,
+                  goalProvider,
+                  'Stay Fit',
+                  Icons.favorite,
+                  Colors.green,
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildGoalOption(
+    BuildContext context,
+    UserGoalProvider goalProvider,
+    String goal,
+    IconData icon,
+    Color color,
+  ) {
+    final isSelected = goalProvider.currentGoal == goal;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => goalProvider.setGoal(goal),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withOpacity(0.1) : Colors.grey[100],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? color : Colors.transparent,
+              width: 2,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? color : Colors.grey,
+                size: 24,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                goal,
+                style: TextStyle(
+                  color: isSelected ? color : Colors.grey,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 12,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

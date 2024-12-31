@@ -172,7 +172,7 @@ class _ListMealsPage extends State<ListMealsPage> {
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
-                                        DateFormat('dd/MM/yyyy at HH:mm')
+                                        DateFormat('dd/MM/yyyy - HH:mm')
                                             .format(meal.consumptionDateTime),
                                         style: TextStyle(
                                           fontSize: 12,
@@ -369,7 +369,7 @@ class _ListMealsPage extends State<ListMealsPage> {
                                 ),
                               ),
                               Text(
-                                DateFormat('dd/MM/yyyy at HH:mm')
+                                DateFormat('dd/MM/yyyy - HH:mm')
                                     .format(selectedDateTime),
                                 style: TextStyle(
                                   color: Colors.grey[600],

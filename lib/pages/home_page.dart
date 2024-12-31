@@ -478,7 +478,7 @@ class _HomePage extends State<HomePage> {
                                                                             2),
                                                                     Text(
                                                                       DateFormat(
-                                                                              'dd/MM/yyyy at HH:mm')
+                                                                              'dd/MM/yyyy - HH:mm')
                                                                           .format(
                                                                               meal.consumptionDateTime),
                                                                       style:
@@ -1034,7 +1034,7 @@ class _HomePage extends State<HomePage> {
                                                                             2),
                                                                     Text(
                                                                       DateFormat(
-                                                                              'dd/MM/yyyy at HH:mm')
+                                                                              'dd/MM/yyyy - HH:mm')
                                                                           .format(
                                                                               meal.consumptionDateTime),
                                                                       style:
@@ -1365,7 +1365,7 @@ class _HomePage extends State<HomePage> {
                                 ),
                               ),
                               Text(
-                                DateFormat('dd/MM/yyyy at HH:mm')
+                                DateFormat('dd/MM/yyyy - HH:mm')
                                     .format(selectedDateTime),
                                 style: TextStyle(
                                   color: Colors.grey[600],

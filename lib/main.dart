@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:food_app/database/meal_provider.dart';
+import 'package:food_app/database/user_goal_provider.dart';
 import 'package:food_app/pages/list_meals_page.dart';
 import 'package:food_app/pages/maps_page.dart';
 import 'package:food_app/pages/statistique_page.dart';
@@ -21,14 +22,23 @@ import 'database/database_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   final mealProvider = MealProvider();
   await mealProvider.loadMeals();
+
   final dbHelper = DatabaseHelper();
   final isEmpty = await dbHelper.isTableEmpty();
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => mealProvider,
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => mealProvider,
+        ),
+        ChangeNotifierProvider(
+          create: (context) => UserGoalProvider(),
+        ),
+      ],
       child: MyApp(initialRoute: isEmpty ? '/onboarding' : '/main'),
     ),
   );
