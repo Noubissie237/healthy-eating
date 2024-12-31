@@ -73,7 +73,8 @@ class _RecordingsPageState extends State<RecordingsPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return const Center(child: Text('Erreur lors du chargement des enregistrements.'));
+            return const Center(
+                child: Text('Erreur lors du chargement des enregistrements.'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('Aucun enregistrement trouvé.'));
           } else {

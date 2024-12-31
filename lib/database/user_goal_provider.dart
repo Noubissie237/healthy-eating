@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class UserGoalProvider with ChangeNotifier {
   static const String _goalKey = 'user_goal';
   String _currentGoal = 'Stay Fit';
-  
+
   UserGoalProvider() {
     _loadGoal();
   }

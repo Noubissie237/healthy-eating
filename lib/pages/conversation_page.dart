@@ -213,12 +213,13 @@ class _ConversationPageState extends State<ConversationPage> {
         leadingWidth: 40,
         title: Row(
           children: [
-          CircleAvatar(
-              radius: 28,
-              child: Text(
-                widget.contactName[0].toUpperCase()+widget.contactName.split(' ')[1][0],
-                style: const TextStyle(fontSize: 20),
-              )),
+            CircleAvatar(
+                radius: 28,
+                child: Text(
+                  widget.contactName[0].toUpperCase() +
+                      widget.contactName.split(' ')[1][0],
+                  style: const TextStyle(fontSize: 20),
+                )),
             const SizedBox(width: 10),
             Expanded(
               child: Column(

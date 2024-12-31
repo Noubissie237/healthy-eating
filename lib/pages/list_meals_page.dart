@@ -268,14 +268,16 @@ class _ListMealsPage extends State<ListMealsPage> {
                   hintText: 'Enter the meal\'s name',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: MyColors.secondaryColor, width: 2),
+                    borderSide:
+                        BorderSide(color: MyColors.secondaryColor, width: 2),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: MyColors.secondaryColor, width: 2),
+                    borderSide:
+                        BorderSide(color: MyColors.secondaryColor, width: 2),
                   ),
-                  prefixIcon:
-                      Icon(Icons.restaurant_menu, color: MyColors.secondaryColor),
+                  prefixIcon: Icon(Icons.restaurant_menu,
+                      color: MyColors.secondaryColor),
                 ),
               ),
               const SizedBox(height: 16),
@@ -286,11 +288,13 @@ class _ListMealsPage extends State<ListMealsPage> {
                   hintText: 'Enter the calories\'s number',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: MyColors.secondaryColor, width: 2),
+                    borderSide:
+                        BorderSide(color: MyColors.secondaryColor, width: 2),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: MyColors.secondaryColor, width: 2),
+                    borderSide:
+                        BorderSide(color: MyColors.secondaryColor, width: 2),
                   ),
                   prefixIcon:
                       Icon(Icons.local_fire_department, color: MyColors.failed),
@@ -356,7 +360,8 @@ class _ListMealsPage extends State<ListMealsPage> {
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
-                          Icon(Icons.calendar_today, color: MyColors.secondaryColor),
+                          Icon(Icons.calendar_today,
+                              color: MyColors.secondaryColor),
                           const SizedBox(width: 8),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

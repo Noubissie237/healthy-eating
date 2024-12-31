@@ -113,15 +113,8 @@ class _SigninPageState extends State<SigninPage> {
                   key: _formKey,
                   child: Column(
                     children: [
-                      createField(
-                          context,
-                          'Email',
-                          '',
-                          false,
-                          _loginController,
-                          TextInputType.emailAddress,
-                          0,
-                          null),
+                      createField(context, 'Email', '', false, _loginController,
+                          TextInputType.emailAddress, 0, null),
                       createField(
                           context,
                           'Password',

@@ -6,7 +6,13 @@ class Users {
   final double? height;
   final double? weight;
 
-  Users({this.id, this.height, this.weight, required this.fullname, required this.email, required this.password});
+  Users(
+      {this.id,
+      this.height,
+      this.weight,
+      required this.fullname,
+      required this.email,
+      required this.password});
 
   Map<String, dynamic> toMap() {
     return {
@@ -18,5 +24,4 @@ class Users {
       'weight': weight
     };
   }
-
 }

@@ -245,7 +245,7 @@ class _ChatPageState extends State<ChatPage> {
           CircleAvatar(
               radius: 28,
               child: Text(
-                displayName[0].toUpperCase()+displayName.split(' ')[1][0],
+                displayName[0].toUpperCase() + displayName.split(' ')[1][0],
                 style: const TextStyle(fontSize: 20),
               )),
           if (_isSelectionMode)

@@ -229,25 +229,25 @@ class DatabaseHelper with ChangeNotifier {
     );
   }
 
-Future<List<Conversation>?> getConversations() async {
-  try {
-    final db = await database;
-    final List<Map<String, dynamic>>? maps = await db?.query(
-      'conversations',
-      orderBy: 'last_message_at DESC',
-    );
+  Future<List<Conversation>?> getConversations() async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>>? maps = await db?.query(
+        'conversations',
+        orderBy: 'last_message_at DESC',
+      );
 
-    if (maps == null || maps.isEmpty) {
-      return null; // Retourne null si aucune conversation n'est trouvée
+      if (maps == null || maps.isEmpty) {
+        return null; // Retourne null si aucune conversation n'est trouvée
+      }
+
+      return List.generate(maps.length, (i) => Conversation.fromMap(maps[i]));
+    } catch (e) {
+      // Gérer l'erreur (log, rethrow, etc.)
+      print('Error fetching conversations: $e');
+      return null; // Retourne null en cas d'erreur
     }
-
-    return List.generate(maps.length, (i) => Conversation.fromMap(maps[i]));
-  } catch (e) {
-    // Gérer l'erreur (log, rethrow, etc.)
-    print('Error fetching conversations: $e');
-    return null; // Retourne null en cas d'erreur
   }
-}
 
   Future<void> updateConversation(Conversation conversation) async {
     final db = await database;
