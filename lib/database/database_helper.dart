@@ -33,6 +33,7 @@ class DatabaseHelper with ChangeNotifier {
     await db.execute('''
       CREATE TABLE users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        avatar TEXT,
         fullname TEXT,
         email TEXT UNIQUE,
         password TEXT,
@@ -114,6 +115,7 @@ class DatabaseHelper with ChangeNotifier {
     return List.generate(maps.length, (i) {
       return Users(
           id: maps[i]['id'],
+          avatar: maps[i]['avatar'],
           fullname: maps[i]['fullname'],
           email: maps[i]['email'],
           password: maps[i]['password'],
@@ -152,6 +154,7 @@ class DatabaseHelper with ChangeNotifier {
     if (result.isNotEmpty) {
       return Users(
         id: result[0]['id'],
+        avatar: result[0]['avatar'],
         fullname: result[0]['fullname'],
         email: result[0]['email'],
         password: result[0]['password'],
@@ -178,6 +181,16 @@ class DatabaseHelper with ChangeNotifier {
     await db!.update(
       'users',
       {'weight': newWeight},
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+  }
+
+  Future<void> updateImage(String email, String newImg) async {
+    final db = await database;
+    await db!.update(
+      'users',
+      {'avatar': newImg},
       where: 'email = ?',
       whereArgs: [email],
     );

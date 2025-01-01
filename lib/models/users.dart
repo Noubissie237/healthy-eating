@@ -1,5 +1,6 @@
 class Users {
   final int? id;
+  final String avatar;
   final String fullname;
   final String email;
   final String password;
@@ -10,6 +11,7 @@ class Users {
       {this.id,
       this.height,
       this.weight,
+      required this.avatar,
       required this.fullname,
       required this.email,
       required this.password});
@@ -17,6 +19,7 @@ class Users {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'avatar': avatar,
       'fullname': fullname,
       'email': email,
       'password': password,

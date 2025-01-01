@@ -406,7 +406,7 @@ class _ChatPageState extends State<ChatPage> {
           return Users(
             // Remplacez avec votre constructeur Users réel
             id: int.parse(otherUserId!),
-            fullname: "User $otherUserId", email: '',
+            fullname: "User $otherUserId", email: '', avatar: '',
             password: '', // Fallback plus informatif
             // Ajoutez d'autres champs requis
           );

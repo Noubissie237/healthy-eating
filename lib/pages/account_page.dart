@@ -30,6 +30,7 @@ class _AccountPageState extends State<AccountPage> {
       final Map<String, dynamic> decodedToken = jsonDecode(token);
       userInfo = {
         'fullname': decodedToken['fullname'] ?? 'Unknown',
+        'avatar': decodedToken['avatar'] ?? 'assets/images/default-img.png',
         'email': decodedToken['email'] ?? 'Unknown',
         'height': decodedToken['height']?.toString() ?? 'Unknown',
         'weight': decodedToken['weight']?.toString() ?? 'Unknown',
@@ -124,7 +125,7 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
-  void _showImageModal(BuildContext context) {
+  void _showImageModal(BuildContext context, String userEmail) {
     final List<String> images = [
       'assets/images/default-img.png',
       'assets/images/image-ball.png',
@@ -188,7 +189,7 @@ class _AccountPageState extends State<AccountPage> {
                     ),
                     itemCount: images.length,
                     itemBuilder: (BuildContext context, int index) {
-                      return _buildImageItem(context, images[index]);
+                      return _buildImageItem(context, images[index], userEmail);
                     },
                   ),
                 ),
@@ -220,13 +221,12 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
-  Widget _buildImageItem(BuildContext context, String imagePath) {
+  Widget _buildImageItem(BuildContext context, String imagePath, String email) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          print("Image $imagePath cliquée");
-          // Ajoutez ici votre logique de sélection
+          _updateImage(context, imagePath, email);
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(
@@ -277,9 +277,9 @@ class _AccountPageState extends State<AccountPage> {
                     ),
                   ],
                 ),
-                child: const CircleAvatar(
+                child: CircleAvatar(
                   radius: 60,
-                  backgroundImage: AssetImage('assets/images/default-img.png'),
+                  backgroundImage: AssetImage(userInfo['avatar']!),
                 ),
               ),
               Positioned(
@@ -294,7 +294,8 @@ class _AccountPageState extends State<AccountPage> {
                   child: IconButton(
                     icon: const Icon(Icons.camera_alt,
                         color: Colors.white, size: 20),
-                    onPressed: () => _showImageModal(context),
+                    onPressed: () =>
+                        _showImageModal(context, userInfo['email']!),
                     constraints:
                         const BoxConstraints.tightFor(width: 40, height: 40),
                     padding: EdgeInsets.zero,
@@ -617,6 +618,24 @@ class _AccountPageState extends State<AccountPage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter a valid weight")),
+      );
+    }
+  }
+
+  Future<void> _updateImage(
+      BuildContext context, String newImg, String? email) async {
+    if (email != null) {
+      final dbHelper = DatabaseHelper();
+      await dbHelper.updateImage(email, newImg);
+      await _updateUserToken('image', newImg);
+      setState(() {
+        _userInfoFuture = _getUserInfo();
+      });
+      Navigator.of(context).pop();
+      print("Avatar changed");
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("An error occured !")),
       );
     }
   }

@@ -201,10 +201,10 @@ class _HomePage extends State<HomePage> {
                                 border:
                                     Border.all(color: Colors.white, width: 2),
                               ),
-                              child: const CircleAvatar(
+                              child: CircleAvatar(
                                 radius: 35,
                                 backgroundImage:
-                                    AssetImage('assets/images/default-img.png'),
+                                    AssetImage(userInfo['avatar']!),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -355,12 +355,12 @@ class _HomePage extends State<HomePage> {
                       width: 100),
                   actions: [
                     // Avatar de l'utilisateur
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
                       child: CircleAvatar(
                         radius: 20,
                         backgroundImage:
-                            AssetImage('assets/images/default-img.png'),
+                            AssetImage(userInfo["avatar"]!),
                       ),
                     ),
 
@@ -896,12 +896,12 @@ class _HomePage extends State<HomePage> {
                       width: 100),
                   actions: [
                     // Avatar de l'utilisateur
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
                       child: CircleAvatar(
                         radius: 20,
                         backgroundImage:
-                            AssetImage('assets/images/default-img.png'),
+                            AssetImage(userInfo["avatar"]!),
                       ),
                     ),
 
@@ -1513,6 +1513,7 @@ class _HomePage extends State<HomePage> {
       final Map<String, dynamic> decodedToken = jsonDecode(token);
       userInfo = {
         'fullname': decodedToken['fullname'] ?? 'Unknown',
+        'avatar': decodedToken['avatar'] ?? 'assets/images/default-img.png',
         'email': decodedToken['email'] ?? 'Unknown',
         'height': decodedToken['height']?.toString() ?? 'Unknown',
         'weight': decodedToken['weight']?.toString() ?? 'Unknown',

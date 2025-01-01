@@ -70,6 +70,7 @@ class _SigninPageState extends State<SigninPage> {
     final prefs = await SharedPreferences.getInstance();
     final userToken = jsonEncode({
       "id": user.id!,
+      "avatar": user.avatar,
       "fullname": user.fullname,
       "email": user.email,
       "height": user.height,

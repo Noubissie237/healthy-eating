@@ -102,9 +102,9 @@ class SettingsPage extends StatelessWidget {
                 width: 3,
               ),
             ),
-            child: const CircleAvatar(
+            child: CircleAvatar(
               radius: 40,
-              backgroundImage: AssetImage('assets/images/default-img.png'),
+              backgroundImage: AssetImage(userInfo['avatar']!),
             ),
           ),
           const SizedBox(width: 16),
@@ -410,6 +410,7 @@ class SettingsPage extends StatelessWidget {
       final Map<String, dynamic> decodedToken = jsonDecode(token);
       userInfo = {
         'fullname': decodedToken['fullname'] ?? 'Unknown',
+        'avatar': decodedToken['avatar'] ?? 'assets/images/default-img.png',
         'email': decodedToken['email'] ?? 'Unknown',
         'height': decodedToken['height']?.toString() ?? 'Unknown',
         'weight': decodedToken['weight']?.toString() ?? 'Unknown',

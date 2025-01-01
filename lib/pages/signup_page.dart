@@ -71,6 +71,7 @@ class _SignupPageState extends State<SignupPage> {
   Future<void> _registerUser(String email) async {
     final user = Users(
       fullname: _fullnameController.text.trim().toUpperCase(),
+      avatar: "assets/images/default-img.png",
       email: email,
       password: _passwordController.text,
     );
@@ -88,6 +89,7 @@ class _SignupPageState extends State<SignupPage> {
     final prefs = await SharedPreferences.getInstance();
     final userToken = jsonEncode({
       'id': userTmp?['id'],
+      "avatar": userTmp!['avatar'],
       'fullname': _fullnameController.text.trim().toUpperCase(),
       'email': email,
       'height': null,
