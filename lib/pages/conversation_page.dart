@@ -1,10 +1,14 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_sound/flutter_sound.dart';
 import 'package:food_app/database/database_helper.dart';
 import 'package:food_app/models/chat.dart';
 import 'package:food_app/utils/utils.dart';
+import 'package:food_app/widgets/voice_message_bubble.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
 class ConversationPage extends StatefulWidget {
@@ -36,12 +40,73 @@ class _ConversationPageState extends State<ConversationPage> {
   int _currentPage = 0;
   bool _hasMoreMessages = true;
 
+  FlutterSoundRecorder? _recorder;
+  bool _isRecording = false;
+  Timer? _recordingTimer;
+  int _recordingDuration = 0;
+
+  Future<void> _initRecorder() async {
+    _recorder = FlutterSoundRecorder();
+    final status = await Permission.microphone.request();
+    if (status != PermissionStatus.granted) {
+      throw RecordingPermissionException('Permission micro refused !');
+    }
+  }
+
+  Future<void> _handleVoiceRecording(bool start) async {
+    if (start) {
+      // Démarrer l'enregistrement
+      final appDir = await getApplicationDocumentsDirectory();
+      final String voicesPath = '${appDir.path}/chat_voices';
+      await Directory(voicesPath).create(recursive: true);
+
+      final String fileName =
+          'audio_${DateTime.now().millisecondsSinceEpoch}.aac';
+      final String localPath = '$voicesPath/$fileName';
+
+      await _recorder!.openRecorder();
+      await _recorder!.startRecorder(
+        toFile: localPath,
+        codec: Codec.aacADTS,
+      );
+
+      setState(() {
+        _isRecording = true;
+        _recordingDuration = 0;
+      });
+
+      // Démarrer le timer pour mettre à jour la durée
+      _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        setState(() {
+          _recordingDuration++;
+        });
+      });
+    } else {
+      // Arrêter l'enregistrement et envoyer
+      if (_recorder!.isRecording) {
+        final String? path = await _recorder!.stopRecorder();
+        await _recorder!.closeRecorder();
+
+        if (path != null) {
+          await _sendMessage(path, MessageType.voice);
+        }
+      }
+
+      _recordingTimer?.cancel();
+      setState(() {
+        _isRecording = false;
+        _recordingDuration = 0;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _initializeConversation();
     _loadMessages();
     _scrollController.addListener(_onScroll);
+    _initRecorder();
   }
 
   void _onScroll() {
@@ -364,11 +429,25 @@ class _ConversationPageState extends State<ConversationPage> {
               maxLines: 5,
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.mic),
-            onPressed: () {
-              // Implémenter l'enregistrement vocal
-            },
+          GestureDetector(
+            onLongPressStart: (_) => _handleVoiceRecording(true),
+            onLongPressEnd: (_) => _handleVoiceRecording(false),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: _isRecording
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.mic, color: Colors.red),
+                          const SizedBox(width: 8),
+                          Text('${_recordingDuration}s'),
+                        ],
+                      )
+                    : const Icon(Icons.mic),
+              ),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.send),
@@ -485,14 +564,10 @@ class _MessageBubble extends StatelessWidget {
             ),
           ),
         );
-      case MessageType.audio:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.audiotrack),
-            const SizedBox(width: 8),
-            Text('Message audio'), // À remplacer par un lecteur audio
-          ],
+      case MessageType.voice:
+        return VoiceMessageBubble(
+          audioPath: message.content,
+          duration: message.metadata?['duration'] as int? ?? 0,
         );
       default:
         return Text('Type de message non pris en charge');

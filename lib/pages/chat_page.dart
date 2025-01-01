@@ -439,13 +439,13 @@ class _ChatPageState extends State<ChatPage> {
         content = '🎵 Audio';
         break;
       case MessageType.video:
-        content = '🎥 Vidéo';
+        content = '🎥 Video';
         break;
       case MessageType.file:
-        content = '📎 Fichier';
+        content = '📎 File';
         break;
       case MessageType.voice:
-        content = '🎤 Message vocal';
+        content = '🎤 Voice message';
         break;
       case MessageType.location:
         content = '📍 Position';
