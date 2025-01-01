@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:food_app/database/database_helper.dart';
 import 'package:food_app/models/chat.dart';
+import 'package:food_app/utils/utils.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 class ConversationPage extends StatefulWidget {
@@ -221,6 +225,26 @@ class _ConversationPageState extends State<ConversationPage> {
     return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
   }
 
+  Future<void> _handleImageMessage() async {
+    final File? imageFile = await pickImage();
+    if (imageFile == null) return;
+
+    // Créer un dossier pour stocker les images si nécessaire
+    final appDir = await getApplicationDocumentsDirectory();
+    final String imagesPath = '${appDir.path}/chat_images';
+    await Directory(imagesPath).create(recursive: true);
+
+    // Générer un nom unique pour l'image
+    final String fileName = '${const Uuid().v4()}.jpg';
+    final String localPath = '$imagesPath/$fileName';
+
+    // Copier l'image dans notre dossier local
+    await imageFile.copy(localPath);
+
+    // Envoyer le message avec le chemin local de l'image
+    await _sendMessage(localPath, MessageType.image);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -326,9 +350,7 @@ class _ConversationPageState extends State<ConversationPage> {
           ),
           IconButton(
             icon: const Icon(Icons.camera_alt),
-            onPressed: () {
-              // Implémenter la capture photo
-            },
+            onPressed: _handleImageMessage,
           ),
           Expanded(
             child: TextField(
@@ -428,10 +450,40 @@ class _MessageBubble extends StatelessWidget {
       case MessageType.text:
         return Text(message.content);
       case MessageType.image:
-        return Image.network(
-          message.content,
-          errorBuilder: (context, error, stackTrace) =>
-              const Icon(Icons.broken_image),
+        return GestureDetector(
+          onTap: () {
+            // Ouvrir l'image en plein écran
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => Scaffold(
+                  appBar: AppBar(),
+                  body: Center(
+                    child: InteractiveViewer(
+                      child: Image.file(
+                        File(message.content),
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.broken_image),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+          child: Hero(
+            tag: message.id,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(
+                File(message.content),
+                fit: BoxFit.cover,
+                width: 200,
+                height: 200,
+                errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.broken_image),
+              ),
+            ),
+          ),
         );
       case MessageType.audio:
         return Row(
