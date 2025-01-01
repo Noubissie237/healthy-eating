@@ -627,7 +627,7 @@ class _AccountPageState extends State<AccountPage> {
     if (email != null) {
       final dbHelper = DatabaseHelper();
       await dbHelper.updateImage(email, newImg);
-      await _updateUserToken('image', newImg);
+      await _updateUserToken('avatar', newImg);
       setState(() {
         _userInfoFuture = _getUserInfo();
       });
