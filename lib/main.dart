@@ -22,6 +22,17 @@ import 'package:food_app/pages/signup_page.dart';
 import 'package:food_app/pages/home_page.dart';
 import 'database/database_helper.dart';
 
+Future<bool> _isConnect() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('user_token');
+    return token != null && token.isNotEmpty;
+  } catch (e) {
+    debugPrint('Erreur lors de la vérification de connexion: $e');
+    return false;
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -30,18 +41,21 @@ void main() async {
 
   final dbHelper = DatabaseHelper();
   final isEmpty = await dbHelper.isTableEmpty();
+  final isConnect = await _isConnect();
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (context) => mealProvider,
-        ),
-        ChangeNotifierProvider(
-          create: (context) => UserGoalProvider(),
-        ),
+        ChangeNotifierProvider(create: (context) => mealProvider),
+        ChangeNotifierProvider(create: (context) => UserGoalProvider()),
       ],
-      child: MyApp(initialRoute: isEmpty ? '/onboarding' : '/main'),
+      child: MyApp(
+        initialRoute: isEmpty
+            ? '/onboarding'
+            : isConnect
+                ? '/main'
+                : '/signin',
+      ),
     ),
   );
 }
@@ -162,19 +176,20 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('user_token');
 
-      if (token != null) {
-        final Map<String, dynamic> decodedToken = jsonDecode(token);
-        final String email = decodedToken['email'];
+      if (token == null) return '';
 
-        final dbHelper = DatabaseHelper();
-        final userData = await dbHelper.getUserByEmail(email);
+      final Map<String, dynamic> decodedToken =
+          json.decode(token) as Map<String, dynamic>;
+      final String email = decodedToken['email'] as String;
 
-        return userData?['id'].toString() ?? '';
-      }
+      final dbHelper = DatabaseHelper();
+      final userData = await dbHelper.getUserByEmail(email);
+
+      return userData?['id']?.toString() ?? '';
     } catch (e) {
-      debugPrint('Erreur lors de la récupération de l\'ID utilisateur: $e');
+      debugPrint('Erreur lors de la récupération de l\'ID: $e');
+      return '';
     }
-    return '';
   }
 
   void _onItemTapped(int index) {
