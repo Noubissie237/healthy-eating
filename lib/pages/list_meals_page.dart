@@ -222,63 +222,229 @@ class _ListMealsPage extends State<ListMealsPage> {
   Future<void> _showCaloriesFilterDialog() async {
     double? tempMinCalories = _minCalories;
     double? tempMaxCalories = _maxCalories;
+    final minController =
+        TextEditingController(text: tempMinCalories?.toString() ?? '');
+    final maxController =
+        TextEditingController(text: tempMaxCalories?.toString() ?? '');
+    bool hasError = false;
+
+    // Fonction de validation
+    bool _validateInputs(String? min, String? max) {
+      if (min != null && max != null && min.isNotEmpty && max.isNotEmpty) {
+        final minVal = double.tryParse(min);
+        final maxVal = double.tryParse(max);
+        if (minVal != null && maxVal != null && minVal > maxVal) {
+          return false;
+        }
+      }
+      return true;
+    }
 
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Filter by Calories'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: const InputDecoration(labelText: 'Min Calories'),
-              keyboardType: TextInputType.number,
-              controller: TextEditingController(
-                text: tempMinCalories?.toString() ?? '',
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
-              onChanged: (value) {
-                tempMinCalories = double.tryParse(value);
-              },
-            ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Max Calories'),
-              keyboardType: TextInputType.number,
-              controller: TextEditingController(
-                text: tempMaxCalories?.toString() ?? '',
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.local_fire_department,
+                    color: MyColors.primaryColor,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Filter by Calories',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                ],
               ),
-              onChanged: (value) {
-                tempMaxCalories = double.tryParse(value);
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _minCalories = null;
-                _maxCalories = null;
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Clear'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _minCalories = tempMinCalories;
-                _maxCalories = tempMaxCalories;
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Apply'),
-          ),
-        ],
-      ),
+              content: Container(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Set your calorie range',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: minController,
+                      decoration: InputDecoration(
+                        labelText: 'Minimum Calories',
+                        hintText: 'Enter minimum calories',
+                        prefixIcon: const Icon(Icons.remove_circle_outline),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: MyColors.primaryColor,
+                            width: 2,
+                          ),
+                        ),
+                        errorText: hasError ? 'Invalid range' : null,
+                      ),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      onChanged: (value) {
+                        setState(() {
+                          tempMinCalories = double.tryParse(value);
+                          hasError = !_validateInputs(
+                              minController.text, maxController.text);
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: maxController,
+                      decoration: InputDecoration(
+                        labelText: 'Maximum Calories',
+                        hintText: 'Enter maximum calories',
+                        prefixIcon: const Icon(Icons.add_circle_outline),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: MyColors.primaryColor,
+                            width: 2,
+                          ),
+                        ),
+                        errorText: hasError ? 'Invalid range' : null,
+                      ),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      onChanged: (value) {
+                        setState(() {
+                          tempMaxCalories = double.tryParse(value);
+                          hasError = !_validateInputs(
+                              minController.text, maxController.text);
+                        });
+                      },
+                    ),
+                    if (hasError) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Maximum calories must be greater than minimum calories',
+                        style: TextStyle(
+                          color: Colors.red[300],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      minController.clear();
+                      maxController.clear();
+                      tempMinCalories = null;
+                      tempMaxCalories = null;
+                      hasError = false;
+                    });
+                  },
+                  icon: const Icon(Icons.clear),
+                  label: Text(
+                    'Clear',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.cancel_outlined),
+                  label: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: hasError
+                      ? null
+                      : () {
+                          if (_validateInputs(
+                              minController.text, maxController.text)) {
+                            this.setState(() {
+                              _minCalories = tempMinCalories;
+                              _maxCalories = tempMaxCalories;
+                            });
+                            Navigator.pop(context);
+
+                            // Afficher un message de confirmation
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.check_circle_outline,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Calories filter applied: ${tempMinCalories?.toStringAsFixed(0) ?? '0'} - ${tempMaxCalories?.toStringAsFixed(0) ?? '∞'} kcal',
+                                    ),
+                                  ],
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                margin: const EdgeInsets.all(16),
+                                duration: const Duration(seconds: 3),
+                                action: SnackBarAction(
+                                  label: 'OK',
+                                  textColor: Colors.white,
+                                  onPressed: () {},
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: MyColors.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                  ),
+                  icon: const Icon(Icons.check),
+                  label: const Text(
+                    'Apply',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
