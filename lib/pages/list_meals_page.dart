@@ -8,6 +8,14 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Enum pour le tri
+enum SortOption {
+  dateAsc,
+  dateDesc,
+  caloriesAsc,
+  caloriesDesc,
+}
+
 class ListMealsPage extends StatefulWidget {
   const ListMealsPage({super.key});
 
@@ -47,12 +55,231 @@ Future<void> _initializeUserMeals(BuildContext context) async {
 }
 
 class _ListMealsPage extends State<ListMealsPage> {
+  // États pour le filtrage et le tri
+  DateTime? _selectedDate;
+  String _searchQuery = '';
+  double? _minCalories;
+  double? _maxCalories;
+  SortOption _currentSort = SortOption.dateDesc;
+
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeUserMeals(context);
     });
+  }
+
+  // Fonction pour filtrer les repas
+  List<Meal> _filterMeals(List<Meal> meals) {
+    return meals.where((meal) {
+      // Filtre par date
+      if (_selectedDate != null) {
+        final isSameDay =
+            meal.consumptionDateTime.year == _selectedDate!.year &&
+                meal.consumptionDateTime.month == _selectedDate!.month &&
+                meal.consumptionDateTime.day == _selectedDate!.day;
+        if (!isSameDay) return false;
+      }
+
+      // Filtre par recherche
+      if (_searchQuery.isNotEmpty) {
+        if (!meal.name.toLowerCase().contains(_searchQuery.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Filtre par calories
+      if (_minCalories != null && meal.calories < _minCalories!) return false;
+      if (_maxCalories != null && meal.calories > _maxCalories!) return false;
+
+      return true;
+    }).toList();
+  }
+
+  // Fonction pour trier les repas
+  List<Meal> _sortMeals(List<Meal> meals) {
+    switch (_currentSort) {
+      case SortOption.dateAsc:
+        return meals
+          ..sort(
+              (a, b) => a.consumptionDateTime.compareTo(b.consumptionDateTime));
+      case SortOption.dateDesc:
+        return meals
+          ..sort(
+              (a, b) => b.consumptionDateTime.compareTo(a.consumptionDateTime));
+      case SortOption.caloriesAsc:
+        return meals..sort((a, b) => a.calories.compareTo(b.calories));
+      case SortOption.caloriesDesc:
+        return meals..sort((a, b) => b.calories.compareTo(a.calories));
+    }
+  }
+
+  Widget _buildFilterBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        children: [
+          // Barre de recherche
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Search meals...',
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+            ),
+            onChanged: (value) {
+              setState(() {
+                _searchQuery = value;
+              });
+            },
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                // Filtre par date
+                FilterChip(
+                  label: Text(_selectedDate == null
+                      ? 'Select Date'
+                      : DateFormat('dd/MM/yyyy').format(_selectedDate!)),
+                  selected: _selectedDate != null,
+                  onSelected: (_) async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedDate ?? DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                    );
+                    setState(() {
+                      _selectedDate = date;
+                    });
+                  },
+                  deleteIcon: _selectedDate != null
+                      ? const Icon(Icons.close, size: 18)
+                      : null,
+                  onDeleted: _selectedDate != null
+                      ? () {
+                          setState(() {
+                            _selectedDate = null;
+                          });
+                        }
+                      : null,
+                ),
+                const SizedBox(width: 8),
+                // Options de tri
+                DropdownButton<SortOption>(
+                  value: _currentSort,
+                  items: const [
+                    DropdownMenuItem(
+                      value: SortOption.dateDesc,
+                      child: Text('Latest first'),
+                    ),
+                    DropdownMenuItem(
+                      value: SortOption.dateAsc,
+                      child: Text('Oldest first'),
+                    ),
+                    DropdownMenuItem(
+                      value: SortOption.caloriesDesc,
+                      child: Text('Highest calories'),
+                    ),
+                    DropdownMenuItem(
+                      value: SortOption.caloriesAsc,
+                      child: Text('Lowest calories'),
+                    ),
+                  ],
+                  onChanged: (SortOption? newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        _currentSort = newValue;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(width: 8),
+                // Filtre de calories
+                ActionChip(
+                  label: const Text('Calories Range'),
+                  onPressed: () {
+                    _showCaloriesFilterDialog();
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showCaloriesFilterDialog() async {
+    double? tempMinCalories = _minCalories;
+    double? tempMaxCalories = _maxCalories;
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Filter by Calories'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              decoration: const InputDecoration(labelText: 'Min Calories'),
+              keyboardType: TextInputType.number,
+              controller: TextEditingController(
+                text: tempMinCalories?.toString() ?? '',
+              ),
+              onChanged: (value) {
+                tempMinCalories = double.tryParse(value);
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Max Calories'),
+              keyboardType: TextInputType.number,
+              controller: TextEditingController(
+                text: tempMaxCalories?.toString() ?? '',
+              ),
+              onChanged: (value) {
+                tempMaxCalories = double.tryParse(value);
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _minCalories = null;
+                _maxCalories = null;
+              });
+              Navigator.pop(context);
+            },
+            child: const Text('Clear'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                _minCalories = tempMinCalories;
+                _maxCalories = tempMaxCalories;
+              });
+              Navigator.pop(context);
+            },
+            child: const Text('Apply'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -90,183 +317,214 @@ class _ListMealsPage extends State<ListMealsPage> {
             ),
             body: Consumer<MealProvider>(
               builder: (context, mealProvider, child) {
-                final meals = mealProvider.meals;
+                // Appliquer les filtres et le tri
+                List<Meal> filteredAndSortedMeals =
+                    _filterMeals(mealProvider.meals);
+                filteredAndSortedMeals = _sortMeals(filteredAndSortedMeals);
 
-                if (meals.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.restaurant,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Aucun repas ajouté pour le moment',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Commencez par ajouter votre premier repas !',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: meals.length,
-                  itemBuilder: (context, index) {
-                    final meal = meals[index];
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
-                            spreadRadius: 2,
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => _showMealDialog(
-                                context, userInfo['email']!, meal),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                children: [
-                                  // Avatar élégant
-                                  Container(
-                                    width: 60,
-                                    height: 60,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          MyColors.primaryColor
-                                              .withOpacity(0.7),
-                                          MyColors.primaryColor,
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        meal.name[0].toUpperCase(),
-                                        style: const TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  // Informations du repas
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          meal.name,
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.local_fire_department,
-                                              size: 16,
-                                              color: MyColors.failed,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              '${meal.calories} calories',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.grey[600],
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.access_time,
-                                              size: 16,
-                                              color: Colors.grey[500],
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              DateFormat('dd/MM/yyyy - HH:mm')
-                                                  .format(
-                                                      meal.consumptionDateTime),
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey[500],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  // Actions
-                                  Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.edit),
-                                        color: MyColors.primaryColor,
-                                        onPressed: () => _showMealDialog(
-                                            context, userInfo['email']!, meal),
-                                        tooltip: 'Update',
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete),
-                                        color: MyColors.failed,
-                                        onPressed: () =>
-                                            _confirmDelete(context, meal),
-                                        tooltip: 'Delete',
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                return Column(
+                  children: [
+                    _buildFilterBar(),
+                    if (filteredAndSortedMeals.isEmpty &&
+                        mealProvider.meals.isNotEmpty)
+                      const Expanded(
+                        child: Center(
+                          child: Text(
+                            'No meals match your filters',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
                             ),
                           ),
                         ),
+                      )
+                    else if (mealProvider.meals.isEmpty)
+                      Expanded(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.restaurant,
+                                size: 64,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No meals added at this time',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Start by adding your first meal !',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: filteredAndSortedMeals.length,
+                          itemBuilder: (context, index) {
+                            final meal = filteredAndSortedMeals[index];
+                            // Votre widget existant pour l'affichage des repas
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.1),
+                                    spreadRadius: 2,
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () => _showMealDialog(
+                                        context, userInfo['email']!, meal),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Row(
+                                        children: [
+                                          // Avatar élégant
+                                          Container(
+                                            width: 60,
+                                            height: 60,
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  MyColors.primaryColor
+                                                      .withOpacity(0.7),
+                                                  MyColors.primaryColor,
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                meal.name[0].toUpperCase(),
+                                                style: const TextStyle(
+                                                  fontSize: 24,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          // Informations du repas
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  meal.name,
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black87,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons
+                                                          .local_fire_department,
+                                                      size: 16,
+                                                      color: MyColors.failed,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      '${meal.calories} calories',
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors.grey[600],
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.access_time,
+                                                      size: 16,
+                                                      color: Colors.grey[500],
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      DateFormat(
+                                                              'dd/MM/yyyy - HH:mm')
+                                                          .format(meal
+                                                              .consumptionDateTime),
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: Colors.grey[500],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          // Actions
+                                          Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              IconButton(
+                                                icon: const Icon(Icons.edit),
+                                                color: MyColors.primaryColor,
+                                                onPressed: () =>
+                                                    _showMealDialog(
+                                                        context,
+                                                        userInfo['email']!,
+                                                        meal),
+                                                tooltip: 'Update',
+                                              ),
+                                              IconButton(
+                                                icon: const Icon(Icons.delete),
+                                                color: MyColors.failed,
+                                                onPressed: () => _confirmDelete(
+                                                    context, meal),
+                                                tooltip: 'Delete',
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                    );
-                  },
+                  ],
                 );
               },
             ),
