@@ -1,15 +1,19 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:food_app/database/database_helper.dart';
 import 'package:food_app/models/chat.dart';
 import 'package:food_app/utils/utils.dart';
 import 'package:food_app/widgets/voice_message_bubble.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
+import 'package:path/path.dart' as path;
 
 class ConversationPage extends StatefulWidget {
   final String contactName;
@@ -50,6 +54,195 @@ class _ConversationPageState extends State<ConversationPage> {
     final status = await Permission.microphone.request();
     if (status != PermissionStatus.granted) {
       throw RecordingPermissionException('Permission micro refused !');
+    }
+  }
+
+  Future<void> _showAttachmentOptions() async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Barre de tiret en haut
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+
+                // Titre
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 20),
+                  child: Text(
+                    'Share Content',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                // Grille d'options
+                GridView.count(
+                  shrinkWrap: true,
+                  crossAxisCount: 4,
+                  mainAxisSpacing: 20,
+                  crossAxisSpacing: 20,
+                  children: [
+                    _buildAttachmentOption(
+                      icon: Icons.photo_library,
+                      label: 'Gallery',
+                      color: Colors.purple,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickImage(ImageSource.gallery);
+                      },
+                    ),
+                    _buildAttachmentOption(
+                      icon: Icons.insert_drive_file,
+                      label: 'Document',
+                      color: Colors.blue,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickDocument();
+                      },
+                    ),
+                    _buildAttachmentOption(
+                      icon: Icons.camera_alt,
+                      label: 'Camera',
+                      color: Colors.red,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickImage(ImageSource.camera);
+                      },
+                    ),
+                    _buildAttachmentOption(
+                      icon: Icons.menu,
+                      label: 'Other',
+                      color: Colors.green,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickDocument();
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAttachmentOption({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              color: Colors.grey[800],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: source,
+      imageQuality: 70, // Compression de l'image
+    );
+
+    if (image != null) {
+      // Copier l'image dans le dossier local de l'app
+      final appDir = await getApplicationDocumentsDirectory();
+      final String imagesPath = '${appDir.path}/chat_images';
+      await Directory(imagesPath).create(recursive: true);
+
+      final String fileName =
+          '${const Uuid().v4()}${path.extension(image.path)}';
+      final String localPath = '$imagesPath/$fileName';
+
+      await image.saveTo(localPath);
+      await _sendMessage(localPath, MessageType.image);
+    }
+  }
+
+  Future<void> _pickDocument() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx', 'txt'],
+      );
+
+      if (result != null) {
+        // Copier le fichier dans le dossier local de l'app
+        final file = File(result.files.single.path!);
+        final appDir = await getApplicationDocumentsDirectory();
+        final String docsPath = '${appDir.path}/chat_documents';
+        await Directory(docsPath).create(recursive: true);
+
+        final String fileName =
+            '${const Uuid().v4()}${path.extension(file.path)}';
+        final String localPath = '$docsPath/$fileName';
+
+        await file.copy(localPath);
+
+        // Créer les métadonnées du fichier
+        // final metadata = {
+        //   'fileName': result.files.single.name,
+        //   'fileSize': result.files.single.size,
+        //   'fileType': path.extension(file.path).toLowerCase(),
+        // };
+        await _sendMessage(
+          localPath,
+          MessageType.file,
+          //metadata: metadata,
+        );
+      }
+    } catch (e) {
+      debugPrint('Erreur lors de la sélection du fichier: $e');
     }
   }
 
@@ -409,9 +602,7 @@ class _ConversationPageState extends State<ConversationPage> {
         children: [
           IconButton(
             icon: const Icon(Icons.attach_file),
-            onPressed: () {
-              // Implémenter la sélection de fichier
-            },
+            onPressed: _showAttachmentOptions,
           ),
           IconButton(
             icon: const Icon(Icons.camera_alt),
@@ -468,6 +659,36 @@ class _ConversationPageState extends State<ConversationPage> {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
+  }
+}
+
+Icon _getFileIcon(String fileType) {
+  switch (fileType.toLowerCase()) {
+    case '.pdf':
+      return const Icon(Icons.picture_as_pdf, color: Colors.red);
+    case '.doc':
+    case '.docx':
+      return const Icon(Icons.description, color: Colors.blue);
+    case '.txt':
+      return const Icon(Icons.text_snippet, color: Colors.grey);
+    default:
+      return const Icon(Icons.insert_drive_file);
+  }
+}
+
+String _formatFileSize(int bytes) {
+  if (bytes < 1024) return '$bytes B';
+  if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+  return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+}
+
+Future<void> _openFile(BuildContext context, String filePath) async {
+  try {
+    OpenFile.open(filePath);
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Impossible d\'ouvrir le fichier')),
+    );
   }
 }
 
@@ -568,6 +789,47 @@ class _MessageBubble extends StatelessWidget {
         return VoiceMessageBubble(
           audioPath: message.content,
           duration: message.metadata?['duration'] as int? ?? 0,
+        );
+      case MessageType.file:
+        final fileName = message.metadata?['fileName'] as String? ?? 'Document';
+        final fileSize = message.metadata?['fileSize'] as int? ?? 0;
+        final fileType = message.metadata?['fileType'] as String? ?? '';
+
+        return GestureDetector(
+          onTap: () => _openFile(context, message.content),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _getFileIcon(fileType),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        fileName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        _formatFileSize(fileSize),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       default:
         return Text('Type de message non pris en charge');
