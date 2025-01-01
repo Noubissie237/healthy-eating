@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:food_app/database/meal_provider.dart';
 import 'package:food_app/database/user_goal_provider.dart';
@@ -5,6 +7,7 @@ import 'package:food_app/models/meal.dart';
 import 'package:intl/intl.dart';
 import 'package:food_app/colors/my_colors.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class StatisticsPage extends StatefulWidget {
   const StatisticsPage({super.key});
@@ -221,12 +224,26 @@ class _StatisticsPageState extends State<StatisticsPage> {
     );
   }
 
+  Future<void> _initializeUserMeals() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('user_token');
+
+    if (token != null && context.mounted) {
+      final Map<String, dynamic> decodedToken = jsonDecode(token);
+      final userEmail = decodedToken['email'];
+
+      Provider.of<MealProvider>(context, listen: false)
+          .loadUserMeals(userEmail);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     selectedDate = DateTime.now();
-    // Charger les repas au démarrage
-    Provider.of<MealProvider>(context, listen: false).loadMeals();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeUserMeals();
+    });
   }
 
   bool isSameDay(DateTime date1, DateTime date2) {
@@ -273,12 +290,16 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   // Calcul de la moyenne hebdomadaire
   double getAverageWeeklyCalories(List<Meal> meals) {
-    final now = DateTime.now();
-    final startOfYear = DateTime(now.year);
-    final weeks = now.difference(startOfYear).inDays / 7;
+    //final now = DateTime.now();
+    //final startOfYear = DateTime(now.year);
+    //final weeks = now.difference(startOfYear).inDays / 7;
 
     final totalCalories = getYearlyCalories(meals);
-    return totalCalories / weeks;
+    // print(totalCalories);
+    // print(weeks);
+    // print(totalCalories / weeks);
+    // return totalCalories / weeks;
+    return totalCalories / 7;
   }
 
   @override

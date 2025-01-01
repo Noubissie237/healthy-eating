@@ -19,6 +19,18 @@ class HomePage extends StatefulWidget {
   }
 }
 
+Future<void> _initializeUserMeals(BuildContext context) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('user_token');
+
+  if (token != null && context.mounted) {
+    final Map<String, dynamic> decodedToken = jsonDecode(token);
+    final userEmail = decodedToken['email'];
+
+    Provider.of<MealProvider>(context, listen: false).loadUserMeals(userEmail);
+  }
+}
+
 class _HomePage extends State<HomePage> {
   bool _isWeight = false;
   bool _isHeight = false;
@@ -26,13 +38,12 @@ class _HomePage extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _initializeValues();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<MealProvider>(context, listen: false).loadMeals();
+      _initializeValues(context);
     });
   }
 
-  Future<void> _initializeValues() async {
+  Future<void> _initializeValues(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('user_token');
 
@@ -46,6 +57,7 @@ class _HomePage extends State<HomePage> {
         _isWeight = weight != 'Unknown';
       });
     }
+    _initializeUserMeals(context);
   }
 
   void _showLogoutDialog(BuildContext context) {
@@ -359,8 +371,7 @@ class _HomePage extends State<HomePage> {
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
                       child: CircleAvatar(
                         radius: 20,
-                        backgroundImage:
-                            AssetImage(userInfo["avatar"]!),
+                        backgroundImage: AssetImage(userInfo["avatar"]!),
                       ),
                     ),
 
@@ -653,7 +664,10 @@ class _HomePage extends State<HomePage> {
                                                       child: InkWell(
                                                         onTap: () =>
                                                             _showMealDialog(
-                                                                context, meal),
+                                                                context,
+                                                                userInfo[
+                                                                    'email']!,
+                                                                meal),
                                                         child: Padding(
                                                           padding:
                                                               const EdgeInsets
@@ -766,10 +780,11 @@ class _HomePage extends State<HomePage> {
                                                                     color: Theme.of(
                                                                             context)
                                                                         .primaryColor,
-                                                                    onPressed: () =>
-                                                                        _showMealDialog(
-                                                                            context,
-                                                                            meal),
+                                                                    onPressed: () => _showMealDialog(
+                                                                        context,
+                                                                        userInfo[
+                                                                            'email']!,
+                                                                        meal),
                                                                   ),
                                                                   IconButton(
                                                                     icon: const Icon(
@@ -863,7 +878,8 @@ class _HomePage extends State<HomePage> {
                         floatingActionButton: FloatingActionButton(
                           backgroundColor: MyColors.primaryColor,
                           child: const Icon(Icons.add),
-                          onPressed: () => _showMealDialog(context),
+                          onPressed: () =>
+                              _showMealDialog(context, userInfo['email']!),
                         ),
                       ),
                     ),
@@ -900,8 +916,7 @@ class _HomePage extends State<HomePage> {
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
                       child: CircleAvatar(
                         radius: 20,
-                        backgroundImage:
-                            AssetImage(userInfo["avatar"]!),
+                        backgroundImage: AssetImage(userInfo["avatar"]!),
                       ),
                     ),
 
@@ -1243,7 +1258,10 @@ class _HomePage extends State<HomePage> {
                                                       child: InkWell(
                                                         onTap: () =>
                                                             _showMealDialog(
-                                                                context, meal),
+                                                                context,
+                                                                userInfo[
+                                                                    'email']!,
+                                                                meal),
                                                         child: Padding(
                                                           padding:
                                                               const EdgeInsets
@@ -1359,10 +1377,11 @@ class _HomePage extends State<HomePage> {
                                                                     color: Theme.of(
                                                                             context)
                                                                         .primaryColor,
-                                                                    onPressed: () =>
-                                                                        _showMealDialog(
-                                                                            context,
-                                                                            meal),
+                                                                    onPressed: () => _showMealDialog(
+                                                                        context,
+                                                                        userInfo[
+                                                                            'email']!,
+                                                                        meal),
                                                                   ),
                                                                   IconButton(
                                                                     icon: const Icon(
@@ -1458,7 +1477,8 @@ class _HomePage extends State<HomePage> {
                         floatingActionButton: FloatingActionButton(
                           backgroundColor: MyColors.primaryColor,
                           child: const Icon(Icons.add),
-                          onPressed: () => _showMealDialog(context),
+                          onPressed: () =>
+                              _showMealDialog(context, userInfo['email']!),
                         ),
                       ),
                     ),
@@ -1523,7 +1543,8 @@ class _HomePage extends State<HomePage> {
     return userInfo;
   }
 
-  Future<void> _showMealDialog(BuildContext context, [Meal? meal]) async {
+  Future<void> _showMealDialog(BuildContext context, String userEmail,
+      [Meal? meal]) async {
     final nameController = TextEditingController(text: meal?.name);
     final caloriesController = TextEditingController(
       text: meal?.calories.toString(),
@@ -1718,11 +1739,11 @@ class _HomePage extends State<HomePage> {
               }
 
               final newMeal = Meal(
-                id: meal?.id,
-                name: name,
-                calories: calories,
-                consumptionDateTime: selectedDateTime,
-              );
+                  id: meal?.id,
+                  name: name,
+                  calories: calories,
+                  consumptionDateTime: selectedDateTime,
+                  userEmail: userEmail);
 
               final provider = context.read<MealProvider>();
               if (meal == null) {

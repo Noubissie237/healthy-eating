@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:food_app/colors/my_colors.dart';
 import 'package:food_app/database/meal_provider.dart';
 import 'package:food_app/models/meal.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ListMealsPage extends StatefulWidget {
   const ListMealsPage({super.key});
@@ -12,223 +15,277 @@ class ListMealsPage extends StatefulWidget {
   State<StatefulWidget> createState() => _ListMealsPage();
 }
 
+Future<Map<String, String>> _getUserInfo() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('user_token');
+
+  Map<String, String> userInfo = {};
+  if (token != null) {
+    final Map<String, dynamic> decodedToken = jsonDecode(token);
+    userInfo = {
+      'fullname': decodedToken['fullname'] ?? 'Unknown',
+      'avatar': decodedToken['avatar'] ?? 'assets/images/default-img.png',
+      'email': decodedToken['email'] ?? 'Unknown',
+      'height': decodedToken['height']?.toString() ?? 'Unknown',
+      'weight': decodedToken['weight']?.toString() ?? 'Unknown',
+    };
+  }
+
+  return userInfo;
+}
+
+Future<void> _initializeUserMeals(BuildContext context) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('user_token');
+
+  if (token != null && context.mounted) {
+    final Map<String, dynamic> decodedToken = jsonDecode(token);
+    final userEmail = decodedToken['email'];
+
+    Provider.of<MealProvider>(context, listen: false).loadUserMeals(userEmail);
+  }
+}
+
 class _ListMealsPage extends State<ListMealsPage> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<MealProvider>(context, listen: false).loadMeals();
+      _initializeUserMeals(context);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: MyColors.backgroundColor,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        title: const Text(
-          'All Meals',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-        ),
-      ),
-      body: Consumer<MealProvider>(
-        builder: (context, mealProvider, child) {
-          final meals = mealProvider.meals;
-
-          if (meals.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.restaurant,
-                    size: 64,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Aucun repas ajouté pour le moment',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Commencez par ajouter votre premier repas !',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                ],
-              ),
+    return FutureBuilder<Map<String, String>>(
+        future: _getUserInfo(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: meals.length,
-            itemBuilder: (context, index) {
-              final meal = meals[index];
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text("Data loading error"),
+            );
+          }
 
-              return Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 2,
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+          final userInfo = snapshot.data!;
+
+          return Scaffold(
+            backgroundColor: MyColors.backgroundColor,
+            appBar: AppBar(
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              title: const Text(
+                'All Meals',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => _showMealDialog(context, meal),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            // Avatar élégant
-                            Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    MyColors.primaryColor.withOpacity(0.7),
-                                    MyColors.primaryColor,
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  meal.name[0].toUpperCase(),
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            // Informations du repas
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+            ),
+            body: Consumer<MealProvider>(
+              builder: (context, mealProvider, child) {
+                final meals = mealProvider.meals;
+
+                if (meals.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.restaurant,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Aucun repas ajouté pour le moment',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Commencez par ajouter votre premier repas !',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: meals.length,
+                  itemBuilder: (context, index) {
+                    final meal = meals[index];
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            spreadRadius: 2,
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _showMealDialog(
+                                context, userInfo['email']!, meal),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
                                 children: [
-                                  Text(
-                                    meal.name,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
+                                  // Avatar élégant
+                                  Container(
+                                    width: 60,
+                                    height: 60,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          MyColors.primaryColor
+                                              .withOpacity(0.7),
+                                          MyColors.primaryColor,
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        meal.name[0].toUpperCase(),
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.local_fire_department,
-                                        size: 16,
-                                        color: MyColors.failed,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        '${meal.calories} calories',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey[600],
-                                          fontWeight: FontWeight.w500,
+                                  const SizedBox(width: 16),
+                                  // Informations du repas
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          meal.name,
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.local_fire_department,
+                                              size: 16,
+                                              color: MyColors.failed,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '${meal.calories} calories',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey[600],
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.access_time,
+                                              size: 16,
+                                              color: Colors.grey[500],
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              DateFormat('dd/MM/yyyy - HH:mm')
+                                                  .format(
+                                                      meal.consumptionDateTime),
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey[500],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Row(
+                                  // Actions
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(
-                                        Icons.access_time,
-                                        size: 16,
-                                        color: Colors.grey[500],
+                                      IconButton(
+                                        icon: const Icon(Icons.edit),
+                                        color: MyColors.primaryColor,
+                                        onPressed: () => _showMealDialog(
+                                            context, userInfo['email']!, meal),
+                                        tooltip: 'Update',
                                       ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        DateFormat('dd/MM/yyyy - HH:mm')
-                                            .format(meal.consumptionDateTime),
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[500],
-                                        ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete),
+                                        color: MyColors.failed,
+                                        onPressed: () =>
+                                            _confirmDelete(context, meal),
+                                        tooltip: 'Delete',
                                       ),
                                     ],
                                   ),
                                 ],
                               ),
                             ),
-                            // Actions
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit),
-                                  color: MyColors.primaryColor,
-                                  onPressed: () =>
-                                      _showMealDialog(context, meal),
-                                  tooltip: 'Update',
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  color: MyColors.failed,
-                                  onPressed: () =>
-                                      _confirmDelete(context, meal),
-                                  tooltip: 'Delete',
-                                ),
-                              ],
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                ),
-              );
-            },
+                    );
+                  },
+                );
+              },
+            ),
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () => _showMealDialog(context, userInfo['email']!),
+              backgroundColor: MyColors.primaryColor,
+              icon: const Icon(Icons.add),
+              label: const Text(
+                'Add a meal',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
           );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showMealDialog(context),
-        backgroundColor: MyColors.primaryColor,
-        icon: const Icon(Icons.add),
-        label: const Text(
-          'Add a meal',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-      ),
-    );
+        });
   }
 
   // Dialog d'ajout/modification amélioré
-  Future<void> _showMealDialog(BuildContext context, [Meal? meal]) async {
+  Future<void> _showMealDialog(BuildContext context, String userEmail,
+      [Meal? meal]) async {
     final nameController = TextEditingController(text: meal?.name);
     final caloriesController = TextEditingController(
       text: meal?.calories.toString(),
@@ -276,8 +333,8 @@ class _ListMealsPage extends State<ListMealsPage> {
                     borderSide:
                         BorderSide(color: MyColors.primaryColor, width: 2),
                   ),
-                  prefixIcon: Icon(Icons.restaurant_menu,
-                      color: MyColors.primaryColor),
+                  prefixIcon:
+                      Icon(Icons.restaurant_menu, color: MyColors.primaryColor),
                 ),
               ),
               const SizedBox(height: 16),
@@ -423,11 +480,11 @@ class _ListMealsPage extends State<ListMealsPage> {
               }
 
               final newMeal = Meal(
-                id: meal?.id,
-                name: name,
-                calories: calories,
-                consumptionDateTime: selectedDateTime,
-              );
+                  id: meal?.id,
+                  name: name,
+                  calories: calories,
+                  consumptionDateTime: selectedDateTime,
+                  userEmail: userEmail);
 
               final provider = context.read<MealProvider>();
               if (meal == null) {

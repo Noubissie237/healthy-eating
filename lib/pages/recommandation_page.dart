@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:food_app/colors/my_colors.dart';
 import 'package:food_app/models/meal.dart';
 import 'package:food_app/database/meal_provider.dart';
 import 'package:food_app/database/user_goal_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RecommendationPage extends StatefulWidget {
   const RecommendationPage({super.key});
@@ -137,55 +140,94 @@ class _RecommendationPageState extends State<RecommendationPage> {
     return selected;
   }
 
+  Future<Map<String, String>> _getUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('user_token');
+
+    Map<String, String> userInfo = {};
+    if (token != null) {
+      final Map<String, dynamic> decodedToken = jsonDecode(token);
+      userInfo = {
+        'fullname': decodedToken['fullname'] ?? 'Unknown',
+        'avatar': decodedToken['avatar'] ?? 'assets/images/default-img.png',
+        'email': decodedToken['email'] ?? 'Unknown',
+        'height': decodedToken['height']?.toString() ?? 'Unknown',
+        'weight': decodedToken['weight']?.toString() ?? 'Unknown',
+      };
+    }
+
+    return userInfo;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        title: const Text(
-          'Meal Recommendations',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black),
-            onPressed: _loadRecommendations,
-          ),
-        ],
-      ),
-      body: Consumer2<MealProvider, UserGoalProvider>(
-        builder: (context, mealProvider, goalProvider, _) {
-          final todayMeals = mealProvider.meals
-              .where((meal) =>
-                  _isSameDay(meal.consumptionDateTime, DateTime.now()))
-              .toList();
-          final consumedCalories =
-              todayMeals.fold(0, (sum, meal) => sum + meal.calories);
-          final goalCalories = _getDailyCalorieGoal(goalProvider.currentGoal);
-          final remainingCalories = goalCalories - consumedCalories;
+    return FutureBuilder<Map<String, String>>(
+        future: _getUserInfo(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
 
-          return SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildCalorieOverview(consumedCalories, goalCalories),
-                if (_isLoading)
-                  _buildLoadingIndicator()
-                else if (_recommendedMeals.isEmpty)
-                  _buildNoRecommendations()
-                else
-                  _buildRecommendationsList(remainingCalories),
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text("Data loading error"),
+            );
+          }
+
+          final userInfo = snapshot.data!;
+
+          return Scaffold(
+            backgroundColor: Colors.grey[50],
+            appBar: AppBar(
+              elevation: 0,
+              backgroundColor: Colors.white,
+              title: const Text(
+                'Meal Recommendations',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.black),
+                  onPressed: _loadRecommendations,
+                ),
               ],
             ),
+            body: Consumer2<MealProvider, UserGoalProvider>(
+              builder: (context, mealProvider, goalProvider, _) {
+                final todayMeals = mealProvider.meals
+                    .where((meal) =>
+                        _isSameDay(meal.consumptionDateTime, DateTime.now()))
+                    .toList();
+                final consumedCalories =
+                    todayMeals.fold(0, (sum, meal) => sum + meal.calories);
+                final goalCalories =
+                    _getDailyCalorieGoal(goalProvider.currentGoal);
+                final remainingCalories = goalCalories - consumedCalories;
+
+                return SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildCalorieOverview(consumedCalories, goalCalories),
+                      if (_isLoading)
+                        _buildLoadingIndicator()
+                      else if (_recommendedMeals.isEmpty)
+                        _buildNoRecommendations()
+                      else
+                        _buildRecommendationsList(
+                            remainingCalories, userInfo['email']!),
+                    ],
+                  ),
+                );
+              },
+            ),
           );
-        },
-      ),
-    );
+        });
   }
 
   Widget _buildCalorieOverview(int consumed, int goal) {
@@ -418,7 +460,7 @@ class _RecommendationPageState extends State<RecommendationPage> {
     );
   }
 
-  Widget _buildRecommendationsList(int remainingCalories) {
+  Widget _buildRecommendationsList(int remainingCalories, String userEmail) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -439,14 +481,14 @@ class _RecommendationPageState extends State<RecommendationPage> {
           itemCount: _recommendedMeals.length,
           itemBuilder: (context, index) {
             final meal = _recommendedMeals[index];
-            return _buildMealCard(meal, remainingCalories);
+            return _buildMealCard(meal, remainingCalories, userEmail);
           },
         ),
       ],
     );
   }
 
-  Widget _buildMealCard(Meal meal, int remainingCalories) {
+  Widget _buildMealCard(Meal meal, int remainingCalories, String userEmail) {
     final caloriePercentage = (meal.calories / remainingCalories * 100).round();
 
     return Container(
@@ -468,96 +510,7 @@ class _RecommendationPageState extends State<RecommendationPage> {
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () async {
-            final mealProvider =
-                Provider.of<MealProvider>(context, listen: false);
-
-            // Créer une copie du repas avec la date actuelle
-            final newMeal = Meal(
-              name: meal.name,
-              calories: meal.calories,
-              consumptionDateTime: DateTime.now(),
-            );
-
-            try {
-              // Afficher un indicateur de chargement
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (BuildContext context) {
-                  return Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 16),
-                          Text('Adding meal...'),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-
-              // Ajouter le repas
-              await mealProvider.addMeal(newMeal);
-
-              // Fermer le dialogue de chargement
-              Navigator.of(context).pop();
-
-              // Recharger les recommandations
-              await _loadRecommendations();
-
-              // Afficher une confirmation
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      const Icon(Icons.check_circle, color: Colors.white),
-                      const SizedBox(width: 8),
-                      Text('${meal.name} added successfully!'),
-                    ],
-                  ),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  margin: const EdgeInsets.all(8),
-                ),
-              );
-            } catch (e) {
-              // En cas d'erreur, fermer le dialogue de chargement
-              Navigator.of(context).pop();
-
-              // Afficher une erreur
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      const Icon(Icons.error, color: Colors.white),
-                      const SizedBox(width: 8),
-                      const Text('Failed to add meal. Please try again.'),
-                    ],
-                  ),
-                  backgroundColor: Colors.red,
-                  duration: const Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  margin: const EdgeInsets.all(8),
-                ),
-              );
-            }
-          },
+          onTap: null, // Désactiver l'ajout lors d'un clic ailleurs
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -598,9 +551,103 @@ class _RecommendationPageState extends State<RecommendationPage> {
                     ],
                   ),
                 ),
-                const Icon(
-                  Icons.add_circle_outline,
-                  color: MyColors.primaryColor,
+                GestureDetector(
+                  onTap: () async {
+                    final mealProvider =
+                        Provider.of<MealProvider>(context, listen: false);
+
+                    // Créer une copie du repas avec la date actuelle
+                    final newMeal = Meal(
+                        name: meal.name,
+                        calories: meal.calories,
+                        consumptionDateTime: DateTime.now(),
+                        userEmail: userEmail);
+
+                    try {
+                      // Afficher un indicateur de chargement
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          return Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CircularProgressIndicator(),
+                                  SizedBox(height: 16),
+                                  Text('Adding meal...'),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+
+                      // Ajouter le repas
+                      await mealProvider.addMeal(newMeal);
+
+                      // Fermer le dialogue de chargement
+                      Navigator.of(context).pop();
+
+                      // Recharger les recommandations
+                      await _loadRecommendations();
+
+                      // Afficher une confirmation
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              const Icon(Icons.check_circle,
+                                  color: Colors.white),
+                              const SizedBox(width: 8),
+                              Text('${meal.name} added successfully!'),
+                            ],
+                          ),
+                          backgroundColor: Colors.green,
+                          duration: const Duration(seconds: 2),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          margin: const EdgeInsets.all(8),
+                        ),
+                      );
+                    } catch (e) {
+                      // En cas d'erreur, fermer le dialogue de chargement
+                      Navigator.of(context).pop();
+
+                      // Afficher une erreur
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              const Icon(Icons.error, color: Colors.white),
+                              const SizedBox(width: 8),
+                              const Text(
+                                  'Failed to add meal. Please try again.'),
+                            ],
+                          ),
+                          backgroundColor: Colors.red,
+                          duration: const Duration(seconds: 2),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          margin: const EdgeInsets.all(8),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Icon(
+                    Icons.add_circle_outline,
+                    color: MyColors.primaryColor,
+                  ),
                 ),
               ],
             ),

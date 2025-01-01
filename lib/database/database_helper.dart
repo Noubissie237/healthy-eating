@@ -86,7 +86,9 @@ class DatabaseHelper with ChangeNotifier {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         calories INTEGER NOT NULL,
-        consumptionDateTime TEXT NOT NULL 
+        consumptionDateTime TEXT NOT NULL,
+        userEmail TEXT NOT NULL,
+        FOREIGN KEY (userEmail) REFERENCES users (email) 
       )
     ''');
 
