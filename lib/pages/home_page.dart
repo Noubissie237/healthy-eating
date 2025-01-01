@@ -48,7 +48,47 @@ class _HomePage extends State<HomePage> {
     }
   }
 
-  void _showCustomDrawer(BuildContext context) {
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Text('Log out'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.remove('user_token');
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/signin',
+                (Route<dynamic> route) => false,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Log out',
+              style: TextStyle(color: MyColors.backgroundColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCustomDrawer(BuildContext context, Map<String, String> userInfo) {
     // Couleurs personnalisées
     const primaryColor = MyColors.secondaryColor;
     const secondaryColor = Color(0xFF2A2A2A); // Gris foncé
@@ -168,21 +208,25 @@ class _HomePage extends State<HomePage> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            const Text(
-                              'Username',
+                            Text(
+                              userInfo['fullname']!,
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'username@email.com',
+                              userInfo['email']!,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.white.withOpacity(0.9),
                               ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                           ],
                         ),
@@ -236,7 +280,7 @@ class _HomePage extends State<HomePage> {
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () {
-                            // TODO: Implémenter la logique de déconnexion
+                            _showLogoutDialog(context);
                           },
                           splashColor: Colors.red.withOpacity(0.1),
                           highlightColor: Colors.red.withOpacity(0.05),
@@ -360,7 +404,7 @@ class _HomePage extends State<HomePage> {
 
                     IconButton(
                       icon: const Icon(Icons.menu, color: MyColors.textColor),
-                      onPressed: () => _showCustomDrawer(context),
+                      onPressed: () => _showCustomDrawer(context, userInfo),
                     ),
                   ],
                 ),
@@ -901,7 +945,7 @@ class _HomePage extends State<HomePage> {
 
                     IconButton(
                       icon: const Icon(Icons.menu, color: MyColors.textColor),
-                      onPressed: () => _showCustomDrawer(context),
+                      onPressed: () => _showCustomDrawer(context, userInfo),
                     ),
                   ],
                 ),
