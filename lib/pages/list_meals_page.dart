@@ -57,12 +57,12 @@ Future<void> _initializeUserMeals(BuildContext context) async {
 class _ListMealsPage extends State<ListMealsPage> {
   // États pour le filtrage et le tri
   DateTime? _selectedDate;
-  String _searchQuery = '';
   double? _minCalories;
   double? _maxCalories;
   SortOption _currentSort = SortOption.dateDesc;
 
   final TextEditingController _searchController = TextEditingController();
+  final ValueNotifier<String> _searchNotifier = ValueNotifier<String>('');
 
   @override
   void initState() {
@@ -70,10 +70,22 @@ class _ListMealsPage extends State<ListMealsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeUserMeals(context);
     });
+
+    // Ajouter un listener au searchController
+    _searchController.addListener(() {
+      _searchNotifier.value = _searchController.text;
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchNotifier.dispose();
+    super.dispose();
   }
 
   // Fonction pour filtrer les repas
-  List<Meal> _filterMeals(List<Meal> meals) {
+  List<Meal> _filterMeals(List<Meal> meals, String searchQuery) {
     return meals.where((meal) {
       // Filtre par date
       if (_selectedDate != null) {
@@ -85,8 +97,8 @@ class _ListMealsPage extends State<ListMealsPage> {
       }
 
       // Filtre par recherche
-      if (_searchQuery.isNotEmpty) {
-        if (!meal.name.toLowerCase().contains(_searchQuery.toLowerCase())) {
+      if (searchQuery.isNotEmpty) {
+        if (!meal.name.toLowerCase().contains(searchQuery.toLowerCase())) {
           return false;
         }
       }
@@ -134,11 +146,6 @@ class _ListMealsPage extends State<ListMealsPage> {
               filled: true,
               fillColor: Colors.white,
             ),
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value;
-              });
-            },
           ),
           const SizedBox(height: 8),
           SingleChildScrollView(
@@ -451,99 +458,103 @@ class _ListMealsPage extends State<ListMealsPage> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, String>>(
-        future: _getUserInfo(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+      future: _getUserInfo(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
 
-          if (snapshot.hasError) {
-            return const Center(
-              child: Text("Data loading error"),
-            );
-          }
+        if (snapshot.hasError) {
+          return const Center(
+            child: Text("Data loading error"),
+          );
+        }
 
-          final userInfo = snapshot.data!;
+        final userInfo = snapshot.data!;
 
-          return Scaffold(
-            backgroundColor: MyColors.backgroundColor,
-            appBar: AppBar(
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              title: const Text(
-                'All Meals',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+        return Scaffold(
+          backgroundColor: MyColors.backgroundColor,
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            title: const Text(
+              'All Meals',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
               ),
             ),
-            body: Consumer<MealProvider>(
-              builder: (context, mealProvider, child) {
-                // Appliquer les filtres et le tri
-                List<Meal> filteredAndSortedMeals =
-                    _filterMeals(mealProvider.meals);
-                filteredAndSortedMeals = _sortMeals(filteredAndSortedMeals);
+          ),
+          body: Consumer<MealProvider>(
+            builder: (context, mealProvider, child) {
+              return Column(
+                children: [
+                  _buildFilterBar(),
+                  ValueListenableBuilder<String>(
+                    valueListenable: _searchNotifier,
+                    builder: (context, searchQuery, _) {
+                      // Appliquer les filtres et le tri
+                      List<Meal> filteredAndSortedMeals =
+                          _filterMeals(mealProvider.meals, searchQuery);
+                      filteredAndSortedMeals =
+                          _sortMeals(filteredAndSortedMeals);
 
-                return Column(
-                  children: [
-                    _buildFilterBar(),
-                    if (filteredAndSortedMeals.isEmpty &&
-                        mealProvider.meals.isNotEmpty)
-                      const Expanded(
-                        child: Center(
-                          child: Text(
-                            'No meals match your filters',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
+                      if (filteredAndSortedMeals.isEmpty &&
+                          mealProvider.meals.isNotEmpty) {
+                        return const Expanded(
+                          child: Center(
+                            child: Text(
+                              'No meals match your filters',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
                             ),
                           ),
-                        ),
-                      )
-                    else if (mealProvider.meals.isEmpty)
-                      Expanded(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.restaurant,
-                                size: 64,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No meals added at this time',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.w500,
+                        );
+                      } else if (mealProvider.meals.isEmpty) {
+                        return Expanded(
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.restaurant,
+                                  size: 64,
+                                  color: Colors.grey[400],
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Start by adding your first meal !',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[500],
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No meals added at this time',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Start by adding your first meal !',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      )
-                    else
-                      Expanded(
+                        );
+                      }
+
+                      return Expanded(
                         child: ListView.builder(
                           padding: const EdgeInsets.all(16),
                           itemCount: filteredAndSortedMeals.length,
                           itemBuilder: (context, index) {
                             final meal = filteredAndSortedMeals[index];
-                            // Votre widget existant pour l'affichage des repas
                             return Container(
                               margin: const EdgeInsets.only(bottom: 16),
                               decoration: BoxDecoration(
@@ -689,22 +700,25 @@ class _ListMealsPage extends State<ListMealsPage> {
                             );
                           },
                         ),
-                      ),
-                  ],
-                );
-              },
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => _showMealDialog(context, userInfo['email']!),
+            backgroundColor: MyColors.primaryColor,
+            icon: const Icon(Icons.add),
+            label: const Text(
+              'Add a meal',
+              style: TextStyle(fontWeight: FontWeight.w600),
             ),
-            floatingActionButton: FloatingActionButton.extended(
-              onPressed: () => _showMealDialog(context, userInfo['email']!),
-              backgroundColor: MyColors.primaryColor,
-              icon: const Icon(Icons.add),
-              label: const Text(
-                'Add a meal',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-          );
-        });
+          ),
+        );
+      },
+    );
   }
 
   // Dialog d'ajout/modification amélioré
