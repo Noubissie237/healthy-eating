@@ -124,6 +124,138 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
+  void _showImageModal(BuildContext context) {
+    final List<String> images = [
+      'assets/images/default-img.png',
+      'assets/images/image-ball.png',
+      'assets/images/image-casque.jpg',
+      'assets/images/image-dog.png',
+      'assets/images/image-rabbit.png',
+      'assets/images/image-woman.jpg',
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.5,
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 20,
+                offset: const Offset(0, -5),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              // Barre de poignée
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Titre
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  'Choose your avatar',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+              // Grille d'images
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: GridView.builder(
+                    physics: const BouncingScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                    ),
+                    itemCount: images.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return _buildImageItem(context, images[index]);
+                    },
+                  ),
+                ),
+              ),
+              // Bouton de fermeture
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Close',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildImageItem(BuildContext context, String imagePath) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          print("Image $imagePath cliquée");
+          // Ajoutez ici votre logique de sélection
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.grey[200]!,
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: Image.asset(
+              imagePath,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildProfileHeader(Map<String, String> userInfo) {
     return Container(
       color: Colors.white,
@@ -162,7 +294,7 @@ class _AccountPageState extends State<AccountPage> {
                   child: IconButton(
                     icon: const Icon(Icons.camera_alt,
                         color: Colors.white, size: 20),
-                    onPressed: () {},
+                    onPressed: () => _showImageModal(context),
                     constraints:
                         const BoxConstraints.tightFor(width: 40, height: 40),
                     padding: EdgeInsets.zero,
