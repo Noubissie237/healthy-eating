@@ -49,7 +49,7 @@ nutritionnel, calculer des indicateurs de santé comme l’IMC et recevoir des r
 
 - **Recommandations Personnalisées** :
   - Suggestions de repas adaptées à l'IMC de l'utilisateur
-  - Recommandations nutritionnelles personnalisées
+  - Recommandations nutritionnelles personnalisée basé sur l'algorithme du sac à dos
 
 - **Services de Géolocalisation** :
   - Localisation des restaurants à proximité
