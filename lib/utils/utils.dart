@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_sound/flutter_sound.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -191,4 +193,23 @@ void showSuccessSnackbar(BuildContext context, String message) {
       margin: const EdgeInsets.all(16),
     ),
   );
+}
+
+Future<Map<String, String>> getUserInfo() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('user_token');
+
+  Map<String, String> userInfo = {};
+  if (token != null) {
+    final Map<String, dynamic> decodedToken = jsonDecode(token);
+    userInfo = {
+      'fullname': decodedToken['fullname'] ?? 'Unknown',
+      'avatar': decodedToken['avatar'] ?? 'assets/images/default-img.png',
+      'email': decodedToken['email'] ?? 'Unknown',
+      'height': decodedToken['height']?.toString() ?? 'Unknown',
+      'weight': decodedToken['weight']?.toString() ?? 'Unknown',
+    };
+  }
+
+  return userInfo;
 }

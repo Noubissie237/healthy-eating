@@ -340,7 +340,7 @@ class _HomePage extends State<HomePage> {
   Widget build(BuildContext context) {
     return (_isHeight && _isWeight)
         ? FutureBuilder<Map<String, String>>(
-            future: _getUserInfo(),
+            future: getUserInfo(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
@@ -429,33 +429,7 @@ class _HomePage extends State<HomePage> {
                           child: Column(
                             children: [
                               // Greeting Card
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(15),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Color.fromRGBO(158, 158, 158, 0.1),
-                                      spreadRadius: 2,
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
-                                ),
-                                child: Text(
-                                  "Hi, ${userInfo['fullname'].toString().split(' ').last.substring(0, 1).toUpperCase()}${userInfo['fullname'].toString().split(' ').last.substring(1).toLowerCase()} 😊",
-                                  style: TextStyle(
-                                    fontSize:
-                                        MediaQuery.of(context).size.width *
-                                            0.06,
-                                    color: MyColors.textColor,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
+                              welcome(userInfo),
                               const SizedBox(height: 20),
                               // Metrics Card
                               Container(
@@ -578,318 +552,15 @@ class _HomePage extends State<HomePage> {
                     ),
 
                     // Meals Section
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color.fromRGBO(158, 158, 158, 0.1),
-                            spreadRadius: 2,
-                            blurRadius: 8,
-                          ),
-                        ],
-                      ),
-                      child: const Text(
-                        "Recent meals",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 4,
-                      child: Scaffold(
-                        backgroundColor: MyColors.backgroundColor,
-                        body: Consumer<MealProvider>(
-                          builder: (context, mealProvider, child) {
-                            final meals = mealProvider.meals;
-
-                            return meals.isEmpty
-                                ? Center(
-                                    child: Text(
-                                      'No meals added at this time',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  )
-                                : Column(
-                                    children: [
-                                      Expanded(
-                                        child: ListView.builder(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 8,
-                                          ),
-                                          itemCount: meals.length > 3
-                                              ? 3
-                                              : meals.length,
-                                          itemBuilder: (context, index) {
-                                            final meal = meals[index];
-                                            final isLastItem = index ==
-                                                (meals.length > 3
-                                                    ? 2
-                                                    : meals.length - 1);
-
-                                            return Column(
-                                              children: [
-                                                Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16),
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: Colors.grey
-                                                            .withOpacity(0.1),
-                                                        spreadRadius: 2,
-                                                        blurRadius: 8,
-                                                        offset:
-                                                            const Offset(0, 2),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16),
-                                                    child: Material(
-                                                      color: Colors.transparent,
-                                                      child: InkWell(
-                                                        onTap: () =>
-                                                            _showMealDialog(
-                                                                context,
-                                                                userInfo[
-                                                                    'email']!,
-                                                                meal),
-                                                        child: Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(16),
-                                                          child: Row(
-                                                            children: [
-                                                              Container(
-                                                                width: 60,
-                                                                height: 60,
-                                                                decoration:
-                                                                    BoxDecoration(
-                                                                  gradient:
-                                                                      LinearGradient(
-                                                                    colors: [
-                                                                      const Color
-                                                                          .fromRGBO(
-                                                                          3,
-                                                                          218,
-                                                                          198,
-                                                                          0.7),
-                                                                      MyColors
-                                                                          .secondaryColor,
-                                                                    ],
-                                                                    begin: Alignment
-                                                                        .topLeft,
-                                                                    end: Alignment
-                                                                        .bottomRight,
-                                                                  ),
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              12),
-                                                                ),
-                                                                child: Center(
-                                                                  child: Text(
-                                                                    meal.name[0]
-                                                                        .toUpperCase(),
-                                                                    style:
-                                                                        const TextStyle(
-                                                                      fontSize:
-                                                                          24,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold,
-                                                                      color: Colors
-                                                                          .white,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              const SizedBox(
-                                                                  width: 16),
-                                                              Expanded(
-                                                                child: Column(
-                                                                  crossAxisAlignment:
-                                                                      CrossAxisAlignment
-                                                                          .start,
-                                                                  children: [
-                                                                    Text(
-                                                                      meal.name,
-                                                                      style:
-                                                                          const TextStyle(
-                                                                        fontSize:
-                                                                            18,
-                                                                        fontWeight:
-                                                                            FontWeight.bold,
-                                                                      ),
-                                                                    ),
-                                                                    const SizedBox(
-                                                                        height:
-                                                                            4),
-                                                                    Text(
-                                                                      '${meal.calories} calories',
-                                                                      style:
-                                                                          TextStyle(
-                                                                        fontSize:
-                                                                            14,
-                                                                        color: Colors
-                                                                            .grey[600],
-                                                                      ),
-                                                                    ),
-                                                                    const SizedBox(
-                                                                        height:
-                                                                            2),
-                                                                    Text(
-                                                                      DateFormat(
-                                                                              'dd/MM/yyyy - HH:mm')
-                                                                          .format(
-                                                                              meal.consumptionDateTime),
-                                                                      style:
-                                                                          TextStyle(
-                                                                        fontSize:
-                                                                            12,
-                                                                        color: Colors
-                                                                            .grey[500],
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ),
-                                                              Row(
-                                                                mainAxisSize:
-                                                                    MainAxisSize
-                                                                        .min,
-                                                                children: [
-                                                                  IconButton(
-                                                                    icon: const Icon(
-                                                                        Icons
-                                                                            .edit),
-                                                                    color: Theme.of(
-                                                                            context)
-                                                                        .primaryColor,
-                                                                    onPressed: () => _showMealDialog(
-                                                                        context,
-                                                                        userInfo[
-                                                                            'email']!,
-                                                                        meal),
-                                                                  ),
-                                                                  IconButton(
-                                                                    icon: const Icon(
-                                                                        Icons
-                                                                            .delete),
-                                                                    color: Colors
-                                                                        .redAccent,
-                                                                    onPressed: () =>
-                                                                        _confirmDelete(
-                                                                            context,
-                                                                            meal),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                if (isLastItem &&
-                                                    meals.length > 3)
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            top: 16, bottom: 8),
-                                                    child: ElevatedButton(
-                                                      onPressed: () {
-                                                        Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                const ListMealsPage(),
-                                                          ),
-                                                        );
-                                                      },
-                                                      style: ElevatedButton
-                                                          .styleFrom(
-                                                        backgroundColor:
-                                                            const Color
-                                                                .fromRGBO(3,
-                                                                218, 198, 0.7),
-                                                        minimumSize: const Size(
-                                                            double.infinity,
-                                                            50),
-                                                        shape:
-                                                            RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(12),
-                                                        ),
-                                                      ),
-                                                      child: const Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          Text(
-                                                            'See more',
-                                                            style: TextStyle(
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              color:
-                                                                  Colors.white,
-                                                            ),
-                                                          ),
-                                                          SizedBox(width: 8),
-                                                          Icon(
-                                                              Icons
-                                                                  .arrow_forward,
-                                                              color:
-                                                                  Colors.white),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                if (!isLastItem)
-                                                  const SizedBox(height: 16),
-                                              ],
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                          },
-                        ),
-                        floatingActionButton: FloatingActionButton(
-                          backgroundColor: MyColors.primaryColor,
-                          child: const Icon(Icons.add),
-                          onPressed: () =>
-                              _showMealDialog(context, userInfo['email']!),
-                        ),
-                      ),
-                    ),
+                    recentMeal(),
+                    mealList(userInfo),
                   ],
                 ),
               );
             },
           )
         : FutureBuilder<Map<String, String>>(
-            future: _getUserInfo(),
+            future: getUserInfo(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
@@ -973,35 +644,7 @@ class _HomePage extends State<HomePage> {
                             padding: const EdgeInsets.all(20.0),
                             child: Column(
                               children: [
-                                // Greeting Card - Inchangé
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(15),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color:
-                                            Color.fromRGBO(158, 158, 158, 0.1),
-                                        spreadRadius: 2,
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Text(
-                                    "Hi, ${userInfo['fullname'].toString().split(' ').last.substring(0, 1).toUpperCase()}${userInfo['fullname'].toString().split(' ').last.substring(1).toLowerCase()} 😊",
-                                    style: TextStyle(
-                                      fontSize:
-                                          MediaQuery.of(context).size.width *
-                                              0.06,
-                                      color: MyColors.textColor,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
+                                welcome(userInfo),
                                 const SizedBox(height: 25),
 
                                 // Info Card
@@ -1174,314 +817,8 @@ class _HomePage extends State<HomePage> {
                     ),
 
                     // Meals Section
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color.fromRGBO(158, 158, 158, 0.1),
-                            spreadRadius: 2,
-                            blurRadius: 8,
-                          ),
-                        ],
-                      ),
-                      child: const Text(
-                        "Recent meals",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 4,
-                      child: Scaffold(
-                        backgroundColor: MyColors.backgroundColor,
-                        body: Consumer<MealProvider>(
-                          builder: (context, mealProvider, child) {
-                            final meals = mealProvider.meals;
-
-                            return meals.isEmpty
-                                ? Center(
-                                    child: Text(
-                                      'No meals added at this time',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  )
-                                : Column(
-                                    children: [
-                                      Expanded(
-                                        child: ListView.builder(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 8),
-                                          itemCount: meals.length < 3
-                                              ? meals.length
-                                              : 3, // Ajuste le nombre d'éléments affichés
-                                          itemBuilder: (context, index) {
-                                            final meal = meals[index];
-                                            const int visibleItems = 3;
-                                            final isLastItem =
-                                                index == visibleItems - 1;
-
-                                            return Column(
-                                              children: [
-                                                // Carte de présentation du repas
-                                                Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16),
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: Colors.grey
-                                                            .withOpacity(0.1),
-                                                        spreadRadius: 2,
-                                                        blurRadius: 8,
-                                                        offset:
-                                                            const Offset(0, 2),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16),
-                                                    child: Material(
-                                                      color: Colors.transparent,
-                                                      child: InkWell(
-                                                        onTap: () =>
-                                                            _showMealDialog(
-                                                                context,
-                                                                userInfo[
-                                                                    'email']!,
-                                                                meal),
-                                                        child: Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(16),
-                                                          child: Row(
-                                                            children: [
-                                                              // Avatar circulaire avec initiale
-                                                              Container(
-                                                                width: 60,
-                                                                height: 60,
-                                                                decoration:
-                                                                    BoxDecoration(
-                                                                  gradient:
-                                                                      LinearGradient(
-                                                                    colors: [
-                                                                      const Color
-                                                                          .fromRGBO(
-                                                                          3,
-                                                                          218,
-                                                                          198,
-                                                                          0.7),
-                                                                      MyColors
-                                                                          .secondaryColor,
-                                                                    ],
-                                                                    begin: Alignment
-                                                                        .topLeft,
-                                                                    end: Alignment
-                                                                        .bottomRight,
-                                                                  ),
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              12),
-                                                                ),
-                                                                child: Center(
-                                                                  child: Text(
-                                                                    meal.name[0]
-                                                                        .toUpperCase(),
-                                                                    style:
-                                                                        const TextStyle(
-                                                                      fontSize:
-                                                                          24,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold,
-                                                                      color: Colors
-                                                                          .white,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              const SizedBox(
-                                                                  width: 16),
-                                                              // Informations sur le repas
-                                                              Expanded(
-                                                                child: Column(
-                                                                  crossAxisAlignment:
-                                                                      CrossAxisAlignment
-                                                                          .start,
-                                                                  children: [
-                                                                    Text(
-                                                                      meal.name,
-                                                                      style:
-                                                                          const TextStyle(
-                                                                        fontSize:
-                                                                            18,
-                                                                        fontWeight:
-                                                                            FontWeight.bold,
-                                                                      ),
-                                                                    ),
-                                                                    const SizedBox(
-                                                                        height:
-                                                                            4),
-                                                                    Text(
-                                                                      '${meal.calories} calories',
-                                                                      style:
-                                                                          TextStyle(
-                                                                        fontSize:
-                                                                            14,
-                                                                        color: Colors
-                                                                            .grey[600],
-                                                                      ),
-                                                                    ),
-                                                                    const SizedBox(
-                                                                        height:
-                                                                            2),
-                                                                    Text(
-                                                                      DateFormat(
-                                                                              'dd/MM/yyyy - HH:mm')
-                                                                          .format(
-                                                                              meal.consumptionDateTime),
-                                                                      style:
-                                                                          TextStyle(
-                                                                        fontSize:
-                                                                            12,
-                                                                        color: Colors
-                                                                            .grey[500],
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ),
-                                                              // Boutons d'édition et suppression
-                                                              Row(
-                                                                mainAxisSize:
-                                                                    MainAxisSize
-                                                                        .min,
-                                                                children: [
-                                                                  IconButton(
-                                                                    icon: const Icon(
-                                                                        Icons
-                                                                            .edit),
-                                                                    color: Theme.of(
-                                                                            context)
-                                                                        .primaryColor,
-                                                                    onPressed: () => _showMealDialog(
-                                                                        context,
-                                                                        userInfo[
-                                                                            'email']!,
-                                                                        meal),
-                                                                  ),
-                                                                  IconButton(
-                                                                    icon: const Icon(
-                                                                        Icons
-                                                                            .delete),
-                                                                    color: Colors
-                                                                        .redAccent,
-                                                                    onPressed: () =>
-                                                                        _confirmDelete(
-                                                                            context,
-                                                                            meal),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                // Bouton "See more"
-                                                if (isLastItem &&
-                                                    meals.length > visibleItems)
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            top: 16, bottom: 8),
-                                                    child: ElevatedButton(
-                                                      onPressed: () {
-                                                        Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                const ListMealsPage(),
-                                                          ),
-                                                        );
-                                                      },
-                                                      style: ElevatedButton
-                                                          .styleFrom(
-                                                        backgroundColor:
-                                                            const Color
-                                                                .fromRGBO(3,
-                                                                218, 198, 0.7),
-                                                        minimumSize: const Size(
-                                                            double.infinity,
-                                                            50),
-                                                        shape:
-                                                            RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(12),
-                                                        ),
-                                                      ),
-                                                      child: const Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          Text(
-                                                            'See more',
-                                                            style: TextStyle(
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              color:
-                                                                  Colors.white,
-                                                            ),
-                                                          ),
-                                                          SizedBox(width: 8),
-                                                          Icon(
-                                                              Icons
-                                                                  .arrow_forward,
-                                                              color:
-                                                                  Colors.white),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                // Espacement entre les cartes
-                                                if (!isLastItem)
-                                                  const SizedBox(height: 16),
-                                              ],
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                          },
-                        ),
-                        floatingActionButton: FloatingActionButton(
-                          backgroundColor: MyColors.primaryColor,
-                          child: const Icon(Icons.add),
-                          onPressed: () =>
-                              _showMealDialog(context, userInfo['email']!),
-                        ),
-                      ),
-                    ),
+                    recentMeal(),
+                    mealList(userInfo),
                   ],
                 ),
               );
@@ -1524,23 +861,273 @@ class _HomePage extends State<HomePage> {
     );
   }
 
-  Future<Map<String, String>> _getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('user_token');
+  Expanded mealList(Map<String, String> userInfo) {
+    return Expanded(
+      flex: 4,
+      child: Scaffold(
+        backgroundColor: MyColors.backgroundColor,
+        body: Consumer<MealProvider>(
+          builder: (context, mealProvider, child) {
+            final meals = mealProvider.meals;
 
-    Map<String, String> userInfo = {};
-    if (token != null) {
-      final Map<String, dynamic> decodedToken = jsonDecode(token);
-      userInfo = {
-        'fullname': decodedToken['fullname'] ?? 'Unknown',
-        'avatar': decodedToken['avatar'] ?? 'assets/images/default-img.png',
-        'email': decodedToken['email'] ?? 'Unknown',
-        'height': decodedToken['height']?.toString() ?? 'Unknown',
-        'weight': decodedToken['weight']?.toString() ?? 'Unknown',
-      };
-    }
+            return meals.isEmpty
+                ? Center(
+                    child: Text(
+                      'No meals added at this time',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  )
+                : Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          itemCount: meals.length > 3 ? 3 : meals.length,
+                          itemBuilder: (context, index) {
+                            final meal = meals[index];
+                            final isLastItem = index ==
+                                (meals.length > 3 ? 2 : meals.length - 1);
 
-    return userInfo;
+                            return Column(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.1),
+                                        spreadRadius: 2,
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: () => _showMealDialog(
+                                            context, userInfo['email']!, meal),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(16),
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                width: 60,
+                                                height: 60,
+                                                decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                    colors: [
+                                                      const Color.fromRGBO(
+                                                          3, 218, 198, 0.7),
+                                                      MyColors.secondaryColor,
+                                                    ],
+                                                    begin: Alignment.topLeft,
+                                                    end: Alignment.bottomRight,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: Center(
+                                                  child: Text(
+                                                    meal.name[0].toUpperCase(),
+                                                    style: const TextStyle(
+                                                      fontSize: 24,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 16),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      meal.name,
+                                                      style: const TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Text(
+                                                      '${meal.calories} calories',
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors.grey[600],
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 2),
+                                                    Text(
+                                                      DateFormat(
+                                                              'dd/MM/yyyy - HH:mm')
+                                                          .format(meal
+                                                              .consumptionDateTime),
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: Colors.grey[500],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  IconButton(
+                                                    icon:
+                                                        const Icon(Icons.edit),
+                                                    color: Theme.of(context)
+                                                        .primaryColor,
+                                                    onPressed: () =>
+                                                        _showMealDialog(
+                                                            context,
+                                                            userInfo['email']!,
+                                                            meal),
+                                                  ),
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                        Icons.delete),
+                                                    color: Colors.redAccent,
+                                                    onPressed: () =>
+                                                        _confirmDelete(
+                                                            context, meal),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                if (isLastItem && meals.length > 3)
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        top: 16, bottom: 8),
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const ListMealsPage(),
+                                          ),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color.fromRGBO(
+                                            3, 218, 198, 0.7),
+                                        minimumSize:
+                                            const Size(double.infinity, 50),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                      child: const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'See more',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Icon(Icons.arrow_forward,
+                                              color: Colors.white),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                if (!isLastItem) const SizedBox(height: 16),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+          },
+        ),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: MyColors.primaryColor,
+          child: const Icon(Icons.add),
+          onPressed: () => _showMealDialog(context, userInfo['email']!),
+        ),
+      ),
+    );
+  }
+
+  Container recentMeal() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: const Color.fromRGBO(158, 158, 158, 0.1),
+            spreadRadius: 2,
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: const Text(
+        "Recent meals",
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Container welcome(Map<String, String> userInfo) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromRGBO(158, 158, 158, 0.1),
+            spreadRadius: 2,
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Text(
+        "Hi, ${userInfo['fullname'].toString().split(' ').last.substring(0, 1).toUpperCase()}${userInfo['fullname'].toString().split(' ').last.substring(1).toLowerCase()} 😊",
+        style: TextStyle(
+          fontSize: MediaQuery.of(context).size.width * 0.06,
+          color: MyColors.textColor,
+          fontWeight: FontWeight.bold,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
   }
 
   Future<void> _showMealDialog(BuildContext context, String userEmail,

@@ -176,27 +176,29 @@ class _SignupPageState extends State<SignupPage> {
       child: Column(
         children: [
           _buildTextField(
-            label: 'Fullname',
-            hint: 'Enter your fullname',
-            controller: _fullnameController,
-            keyboardType: TextInputType.name,
-          ),
+              label: 'Fullname',
+              hint: 'Enter your fullname',
+              controller: _fullnameController,
+              keyboardType: TextInputType.name,
+              minLength: 3,
+              isEmailField: false),
           const SizedBox(height: 16.0),
           _buildTextField(
-            label: 'Email',
-            hint: 'xyz@gmail.com',
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
-          ),
+              label: 'Email',
+              hint: 'xyz@gmail.com',
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              isEmailField: true),
           const SizedBox(height: 16.0),
           _buildTextField(
-            label: 'Password',
-            hint: 'Enter your password',
-            controller: _passwordController,
-            isPassword: true,
-            keyboardType: TextInputType.number,
-            maxLength: 4,
-          ),
+              label: 'Password',
+              hint: 'Enter your password',
+              controller: _passwordController,
+              isPassword: true,
+              keyboardType: TextInputType.number,
+              maxLength: 4,
+              minLength: 4,
+              isEmailField: false),
           const SizedBox(height: 24.0),
           _buildSubmitButton(),
           const SizedBox(height: 16.0),
@@ -206,14 +208,15 @@ class _SignupPageState extends State<SignupPage> {
     );
   }
 
-  Widget _buildTextField({
-    required String label,
-    required String hint,
-    required TextEditingController controller,
-    bool isPassword = false,
-    TextInputType? keyboardType,
-    int? maxLength,
-  }) {
+  Widget _buildTextField(
+      {required String label,
+      required String hint,
+      required TextEditingController controller,
+      required bool isEmailField,
+      bool isPassword = false,
+      TextInputType? keyboardType,
+      int? maxLength,
+      int? minLength}) {
     return TextFormField(
       controller: controller,
       obscureText: isPassword,
@@ -229,6 +232,20 @@ class _SignupPageState extends State<SignupPage> {
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Please enter $label';
+        }
+        if (minLength != null) {
+          if (value.length < minLength) {
+            return 'Minimum $minLength required !';
+          }
+        }
+        if (isEmailField) {
+          final RegExp emailRegex = RegExp(
+            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+          );
+
+          if (!emailRegex.hasMatch(value)) {
+            return 'Invalid email !';
+          }
         }
         return null;
       },

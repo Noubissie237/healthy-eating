@@ -1,12 +1,10 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:food_app/colors/my_colors.dart';
 import 'package:food_app/models/meal.dart';
 import 'package:food_app/database/meal_provider.dart';
 import 'package:food_app/database/user_goal_provider.dart';
+import 'package:food_app/utils/utils.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class RecommendationPage extends StatefulWidget {
   const RecommendationPage({super.key});
@@ -140,29 +138,10 @@ class _RecommendationPageState extends State<RecommendationPage> {
     return selected;
   }
 
-  Future<Map<String, String>> _getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('user_token');
-
-    Map<String, String> userInfo = {};
-    if (token != null) {
-      final Map<String, dynamic> decodedToken = jsonDecode(token);
-      userInfo = {
-        'fullname': decodedToken['fullname'] ?? 'Unknown',
-        'avatar': decodedToken['avatar'] ?? 'assets/images/default-img.png',
-        'email': decodedToken['email'] ?? 'Unknown',
-        'height': decodedToken['height']?.toString() ?? 'Unknown',
-        'weight': decodedToken['weight']?.toString() ?? 'Unknown',
-      };
-    }
-
-    return userInfo;
-  }
-
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, String>>(
-        future: _getUserInfo(),
+        future: getUserInfo(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(

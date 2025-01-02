@@ -18,26 +18,9 @@ class _AccountPageState extends State<AccountPage> {
   @override
   void initState() {
     super.initState();
-    _userInfoFuture = _getUserInfo();
+    _userInfoFuture = getUserInfo();
   }
 
-  Future<Map<String, String>> _getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('user_token');
-
-    Map<String, String> userInfo = {};
-    if (token != null) {
-      final Map<String, dynamic> decodedToken = jsonDecode(token);
-      userInfo = {
-        'fullname': decodedToken['fullname'] ?? 'Unknown',
-        'avatar': decodedToken['avatar'] ?? 'assets/images/default-img.png',
-        'email': decodedToken['email'] ?? 'Unknown',
-        'height': decodedToken['height']?.toString() ?? 'Unknown',
-        'weight': decodedToken['weight']?.toString() ?? 'Unknown',
-      };
-    }
-    return userInfo;
-  }
 
   Future<void> _refreshUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
@@ -58,7 +41,7 @@ class _AccountPageState extends State<AccountPage> {
     }
 
     setState(() {
-      _userInfoFuture = _getUserInfo();
+      _userInfoFuture = getUserInfo();
     });
   }
 
@@ -594,7 +577,7 @@ class _AccountPageState extends State<AccountPage> {
       await dbHelper.updateHeight(email, newHeight);
       await _updateUserToken('height', newHeight);
       setState(() {
-        _userInfoFuture = _getUserInfo();
+        _userInfoFuture = getUserInfo();
       });
       Navigator.of(context).pop();
     } else {
@@ -612,7 +595,7 @@ class _AccountPageState extends State<AccountPage> {
       await dbHelper.updateWeight(email, newWeight);
       await _updateUserToken('weight', newWeight);
       setState(() {
-        _userInfoFuture = _getUserInfo();
+        _userInfoFuture = getUserInfo();
       });
       Navigator.of(context).pop();
     } else {
@@ -629,7 +612,7 @@ class _AccountPageState extends State<AccountPage> {
       await dbHelper.updateImage(email, newImg);
       await _updateUserToken('avatar', newImg);
       setState(() {
-        _userInfoFuture = _getUserInfo();
+        _userInfoFuture = getUserInfo();
       });
       Navigator.of(context).pop();
       print("Avatar changed");

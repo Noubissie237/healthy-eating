@@ -3,7 +3,6 @@ import 'package:food_app/colors/my_colors.dart';
 import 'package:food_app/utils/utils.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -11,7 +10,7 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, String>>(
-      future: _getUserInfo(),
+      future: getUserInfo(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -399,23 +398,5 @@ class SettingsPage extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Future<Map<String, String>> _getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('user_token');
-
-    Map<String, String> userInfo = {};
-    if (token != null) {
-      final Map<String, dynamic> decodedToken = jsonDecode(token);
-      userInfo = {
-        'fullname': decodedToken['fullname'] ?? 'Unknown',
-        'avatar': decodedToken['avatar'] ?? 'assets/images/default-img.png',
-        'email': decodedToken['email'] ?? 'Unknown',
-        'height': decodedToken['height']?.toString() ?? 'Unknown',
-        'weight': decodedToken['weight']?.toString() ?? 'Unknown',
-      };
-    }
-    return userInfo;
   }
 }
