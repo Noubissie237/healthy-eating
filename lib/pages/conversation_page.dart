@@ -503,6 +503,92 @@ class _ConversationPageState extends State<ConversationPage> {
     await _sendMessage(localPath, MessageType.image);
   }
 
+  Future<void> _deleteAllMessages() async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete All Messages'),
+        content: const Text(
+            'Are you sure you want to delete all messages? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(context),
+          ),
+          TextButton(
+            child:
+                const Text('Delete All', style: TextStyle(color: Colors.red)),
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await _dbHelper
+                    .deleteMessagesForConversation(widget.conversationId);
+                setState(() {
+                  messages.clear();
+                });
+
+                // Mettre à jour la conversation
+                await _dbHelper.updateConversation(
+                  Conversation(
+                    id: widget.conversationId,
+                    name: widget.contactName,
+                    avatarUrl: widget.avatarUrl,
+                    isGroup: false,
+                    participantIds: [widget.currentUserId, widget.receiverId],
+                    createdAt: DateTime.now(),
+                    lastMessageAt: DateTime.now(),
+                    lastMessageContent: null,
+                    lastMessageType: null,
+                  ),
+                );
+              } catch (e) {
+                debugPrint('An error occurred while deleting all messages: $e');
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showConversationOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text('Delete All Messages'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _deleteAllMessages();
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -537,16 +623,21 @@ class _ConversationPageState extends State<ConversationPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.videocam),
-            onPressed: () {},
+            onPressed: () {
+              downMessage(context, Icon(Icons.videocam),
+                  "Feature currently unavailable");
+            },
           ),
           IconButton(
             icon: const Icon(Icons.call),
-            onPressed: () {},
+            onPressed: () {
+              downMessage(
+                  context, Icon(Icons.call), "Feature currently unavailable");
+            },
           ),
           IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {},
-          ),
+              icon: const Icon(Icons.more_vert),
+              onPressed: _showConversationOptions),
         ],
       ),
       body: Column(
