@@ -387,7 +387,7 @@ class _ConversationPageState extends State<ConversationPage> {
       id: const Uuid().v4(),
       conversationId: widget.conversationId,
       senderId: widget.currentUserId,
-      receiverId: widget.receiverId, // À adapter selon votre logique
+      receiverId: widget.receiverId, 
       type: type,
       content: content,
       timestamp: DateTime.now(),
@@ -413,7 +413,7 @@ class _ConversationPageState extends State<ConversationPage> {
         participantIds: [
           widget.currentUserId,
           widget.receiverId
-        ], // Correction ici
+        ], 
         createdAt: DateTime.now(),
         lastMessageAt: DateTime.now(),
         lastMessageContent: content,

@@ -17,7 +17,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     OnboardingContent(
       title: 'Welcome !',
       description: 'Track your meals and improve your health',
-      image: '', // Ajoutez vos images
+      image: '', 
       backgroundColor: MyColors.primaryColor,
       iconData: Icons.restaurant_menu,
     ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/* Pour les objectifs de l'utilisateur */
+
 class UserGoalProvider with ChangeNotifier {
   static const String _goalKey = 'user_goal';
   String _currentGoal = 'Stay Fit';
