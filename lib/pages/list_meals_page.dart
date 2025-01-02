@@ -793,7 +793,7 @@ class _ListMealsPage extends State<ListMealsPage> {
                         context: context,
                         initialDate: selectedDateTime,
                         firstDate: DateTime(2020),
-                        lastDate: DateTime(2025),
+                        lastDate: DateTime(2026),
                         builder: (context, child) {
                           return Theme(
                             data: Theme.of(context).copyWith(
